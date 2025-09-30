@@ -1,14 +1,14 @@
 # MikroORM PGlite
 
-## Table of Contents
+## 목차
 
 <!-- toc -->
 
-- [Languages](#languages)
+- [언어](#%EC%96%B8%EC%96%B4)
 
 <!-- tocstop -->
 
-## Languages
+## 언어
 
 - [English](/README.md)
 - [한국어](/README.ko.md)

@@ -1,3 +1,61 @@
 {
-  "name": "mikro-orm-pglite"
+  "name": "mikro-orm-pglite",
+  "version": "0.1.0",
+  "description": "PGlite driver for MikroORM that uses knex-pglite, a PGlite Dialect for Knex.js.",
+  "keywords": [
+    "knex",
+    "knex-pglite",
+    "mikro",
+    "mikro-orm",
+    "orm",
+    "pg",
+    "pglite",
+    "postgres",
+    "postgresql"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/harryplusplus/mikro-orm-pglite.git"
+  },
+  "license": "MIT",
+  "author": {
+    "email": "harryplusplus@gmail.com",
+    "name": "harryplusplus",
+    "url": "https://harryplusplus.com"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "align": "run-p format generate:readme-toc",
+    "format": "run-p format:*",
+    "format:cspell-json": "jsonsort -a cspell.json",
+    "format:package-json": "jsonsort -a package.json",
+    "generate:readme-toc": "run-p generate:readme-toc:*",
+    "generate:readme-toc:en": "markdown-toc -i README.md",
+    "generate:readme-toc:ko": "markdown-toc -i README.ko.md"
+  },
+  "dependencies": {
+    "knex-pglite": "0.12.0"
+  },
+  "devDependencies": {
+    "@mikro-orm/core": "6.5.6",
+    "@mikro-orm/postgresql": "6.5.6",
+    "json-sort-cli": "4.0.10",
+    "markdown-toc": "1.2.0",
+    "npm-run-all": "4.1.5",
+    "ts-node": "10.9.2"
+  },
+  "peerDependencies": {
+    "@mikro-orm/core": "^6.5.6",
+    "@mikro-orm/postgresql": "^6.5.6"
+  },
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">= 20.19.5"
+  }
 }
