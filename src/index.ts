@@ -7,5 +7,5 @@ export * from "./PGliteDriver";
 export {
   definePGliteConfig as defineConfig,
   PGliteMikroORM as MikroORM,
-  PGliteOptions as Options,
+  type PGliteOptions as Options,
 } from "./PGliteMikroORM";
