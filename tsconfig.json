@@ -20,6 +20,9 @@
     "target": "es2020",
     "verbatimModuleSyntax": false
   },
+  "include": [
+    "**/*.ts"
+  ],
   "ts-node": {
     "require": [
       "@swc-node/register"
