@@ -12,6 +12,7 @@
   - [ORM Initialization](#orm-initialization)
   - [Configuration File](#configuration-file)
   - [Nest.js Integration](#nestjs-integration)
+- [Options](#options)
 - [License](#license)
 
 <!-- tocstop -->
@@ -67,6 +68,34 @@ import { PGliteDriver } from "mikro-orm-pglite";
 })
 export class AppModule {}
 ```
+
+## Options
+
+Configure PGlite options via `driverOptions.pgliteOptions`.
+
+```typescript
+import { Options } from "mikro-orm-pglite";
+
+// Add to MikroORM config wherever needed.
+const options: Options = {
+  driverOptions: {
+    pgliteOptions: (config) => {
+      // Receive combined MikroORM & Knex.js options,
+      // return PGlite settings if needed.
+      return {};
+    };
+  }
+}
+```
+
+Use in `MikroORM.init`, `defineConfig`, or `MikroOrmModule.forRoot`.
+Defaults are usually fine; override only if you need to tweak PGlite setup.
+
+**See also:**
+
+- [MikroORM Configuration](https://mikro-orm.io/docs/configuration)
+- [PGlite Main Constructor](https://pglite.dev/docs/api#main-constructor)
+- [Knex.js Configuration Options](https://knexjs.org/guide/#configuration-options)
 
 ## License
 
