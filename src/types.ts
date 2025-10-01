@@ -8,13 +8,15 @@ import type {
 } from "@mikro-orm/core";
 import type { Knex } from "@mikro-orm/postgresql";
 
-export type PGliteOptionsFactory = (
-  config: Knex.Config & DriverOptions
+export type PGliteKnexDialectConfig = Knex.Config & DriverOptions;
+
+export type PGliteOptionsResolver = (
+  config: PGliteKnexDialectConfig
 ) => PGliteOptions;
 
 export type DriverOptions =
   | Dictionary & {
-      pgliteOptions?: PGliteOptionsFactory;
+      pgliteOptions?: PGliteOptionsResolver;
     };
 
 export type Options<

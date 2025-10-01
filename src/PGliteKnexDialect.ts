@@ -1,36 +1,23 @@
 import { PGlite } from "@electric-sql/pglite";
-import {
-  type Configuration,
-  type Dictionary,
-  type Knex,
-  PostgreSqlKnexDialect,
-} from "@mikro-orm/postgresql";
+import { type Dictionary, PostgreSqlKnexDialect } from "@mikro-orm/postgresql";
 import defaults from "lodash.defaults";
-import type { PGliteOptionsFactory } from "./types";
+import type { Constructor } from "type-fest";
+import type { PGliteKnexDialectConfig, PGliteOptionsResolver } from "./types";
+import type { __PostgreSqlKnexDialect } from "./unsafe-types";
+import { VersionRow } from "./zod-schemas";
 
-export const DEFAULT_PGLITE_OPTIONS_FACTORY: PGliteOptionsFactory = () => ({});
+export const DEFAULT_PGLITE_OPTIONS_RESOLVER: PGliteOptionsResolver =
+  () => ({});
 
-declare class _TypedPostgreSqlKnexDialect {
-  config: Knex.Config;
-  driver: PGlite;
-  ormConfig: Configuration;
-  logger: Knex.Logger;
-  constructor(config: Knex.Config);
-  _driver(): PGlite;
-  _acquireOnlyConnection(): Promise<PGlite>;
-  poolDefaults(): Dictionary;
-  checkVersion(connection: PGlite): Promise<string>;
-  _query(connection: PGlite, obj: Dictionary): Promise<Dictionary>;
-  _parseVersion(version: string): string;
-  processResponse(obj: Dictionary, runner: Dictionary): Dictionary;
-}
-
-// @ts-expect-error Knex.Client_PG
-const typedPostgreSqlKnexDialect: typeof _TypedPostgreSqlKnexDialect =
+// @ts-expect-error 타입 없는 의존성은 src/unsafe-types.d.ts에 정의함
+const __PostgreSqlKnexDialect: Constructor<__PostgreSqlKnexDialect> =
   PostgreSqlKnexDialect;
 
-export class PGliteKnexDialect extends typedPostgreSqlKnexDialect {
-  constructor(config: Knex.Config) {
+export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
+  override config!: PGliteKnexDialectConfig;
+  override driver!: PGlite;
+
+  constructor(config: PGliteKnexDialectConfig) {
     super(config);
   }
 
@@ -39,12 +26,11 @@ export class PGliteKnexDialect extends typedPostgreSqlKnexDialect {
       throw new Error("this.config must exist.");
     }
 
-    const pgliteOptionsFactory =
-      "pgliteOptions" in this.config &&
-      typeof this.config.pgliteOptions === "function"
-        ? (this.config.pgliteOptions as PGliteOptionsFactory)
-        : DEFAULT_PGLITE_OPTIONS_FACTORY;
-    return new PGlite(pgliteOptionsFactory(this.config));
+    const pgliteOptions = this.config.pgliteOptions
+      ? this.config.pgliteOptions
+      : DEFAULT_PGLITE_OPTIONS_RESOLVER;
+
+    return new PGlite(pgliteOptions(this.config));
   }
 
   override async _acquireOnlyConnection() {
@@ -61,8 +47,10 @@ export class PGliteKnexDialect extends typedPostgreSqlKnexDialect {
   }
 
   override async checkVersion(connection: PGlite) {
-    const res = await connection.query("select version();");
-    return this._parseVersion((res.rows[0] as { version: string }).version);
+    const result = await connection.query("select version();");
+    const row = result.rows[0];
+    const { version } = VersionRow.parse(row);
+    return this._parseVersion(version);
   }
 
   override async _query(connection: PGlite, obj: Dictionary) {
