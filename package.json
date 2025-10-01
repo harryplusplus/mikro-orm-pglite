@@ -13,6 +13,7 @@
     "postgres",
     "postgresql"
   ],
+  "homepage": "https://github.com/harryplusplus/mikro-orm-pglite#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/harryplusplus/mikro-orm-pglite.git"
