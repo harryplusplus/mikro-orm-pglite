@@ -33,10 +33,12 @@ interface __Client_PG extends Knex.Client {
 
 // @mikro-orm/postgresql@6.5.6 PostgreSqlKnexDialect
 // @ts-expect-error type mismatch
-// Knex.Client queryCompiler() tableCompiler() PostgreSqlKnexDialect
+// Knex.Client queryCompiler() tableCompiler()
+// PostgreSqlKnexDialect queryCompiler() tableCompiler()
 interface __PostgreSqlKnexDialect extends __Client_PG, PostgreSqlKnexDialect {}
 
-// @ts-expect-error 타입 없는 의존성은 src/unsafe-types.d.ts에 정의함
+// @ts-expect-error The actual implementation interface related to this type
+// error is the same as the upper library version.
 const __PostgreSqlKnexDialect: Constructor<__PostgreSqlKnexDialect> =
   PostgreSqlKnexDialect;
 
