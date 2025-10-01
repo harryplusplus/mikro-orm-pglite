@@ -8,16 +8,13 @@ importers:
 
   .:
     dependencies:
+      '@electric-sql/pglite':
+        specifier: ^0.3.10
+        version: 0.3.10
       lodash.defaults:
         specifier: ^4.2.0
         version: 4.2.0
-      zod:
-        specifier: ^4.0.0
-        version: 4.1.11
     devDependencies:
-      '@electric-sql/pglite':
-        specifier: 0.3.10
-        version: 0.3.10
       '@eslint/js':
         specifier: 9.36.0
         version: 9.36.0
@@ -3124,9 +3121,6 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
-
-  zod@4.1.11:
-    resolution: {integrity: sha512-WPsqwxITS2tzx1bzhIKsEs19ABD5vmCVa4xBo2tq/SrV4RNZtfws1EnCWQXM6yh8bD08a1idvkB5MZSBiZsjwg==}
 
 snapshots:
 
@@ -6622,5 +6616,3 @@ snapshots:
   yn@3.1.1: {}
 
   yocto-queue@0.1.0: {}
-
-  zod@4.1.11: {}

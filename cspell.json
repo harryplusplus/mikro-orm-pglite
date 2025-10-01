@@ -4,6 +4,7 @@
     "jsonsort",
     "mikro",
     "pglite",
+    "timestamptz",
     "tocstop"
   ]
 }

@@ -10,9 +10,9 @@ import type { Knex } from "@mikro-orm/postgresql";
 
 export type PGliteKnexDialectConfig = Knex.Config & DriverOptions;
 
-export type PGliteOptionsResolver = (
-  config: PGliteKnexDialectConfig
-) => PGliteOptions;
+export interface PGliteOptionsResolver {
+  (config: PGliteKnexDialectConfig): PGliteOptions;
+}
 
 export type DriverOptions =
   | Dictionary & {

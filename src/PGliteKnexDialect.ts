@@ -1,10 +1,9 @@
-import { PGlite } from "@electric-sql/pglite";
+import { PGlite, Results } from "@electric-sql/pglite";
 import { type Dictionary, PostgreSqlKnexDialect } from "@mikro-orm/postgresql";
 import defaults from "lodash.defaults";
 import type { Constructor } from "type-fest";
 import type { PGliteKnexDialectConfig, PGliteOptionsResolver } from "./types";
 import type { __PostgreSqlKnexDialect } from "./unsafe-types";
-import { VersionRow } from "./zod-schemas";
 
 export const DEFAULT_PGLITE_OPTIONS_RESOLVER: PGliteOptionsResolver =
   () => ({});
@@ -13,56 +12,105 @@ export const DEFAULT_PGLITE_OPTIONS_RESOLVER: PGliteOptionsResolver =
 const __PostgreSqlKnexDialect: Constructor<__PostgreSqlKnexDialect> =
   PostgreSqlKnexDialect;
 
-export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
-  override config!: PGliteKnexDialectConfig;
-  override driver!: PGlite;
+export interface PartialPgResult {
+  command?: string;
+  rowCount?: number | null;
+}
 
+export interface Response extends Results, PartialPgResult {}
+
+export interface QueryObject extends Dictionary {
+  method?: string;
+  sql?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bindings?: any[];
+  response?: Response | Response[];
+}
+
+export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
   constructor(config: PGliteKnexDialectConfig) {
     super(config);
   }
 
-  override _driver() {
+  getConfig(): PGliteKnexDialectConfig {
     if (!this.config) {
-      throw new Error("this.config must exist.");
+      throw new Error("config is not initialized.");
     }
 
-    const pgliteOptions = this.config.pgliteOptions
-      ? this.config.pgliteOptions
+    return this.config;
+  }
+
+  getDriver(): PGlite {
+    if (!this.driver) {
+      throw new Error("driver is not initialized.");
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return this.driver;
+  }
+
+  override _driver() {
+    const config = this.getConfig();
+    const pgliteOptions = config.pgliteOptions
+      ? config.pgliteOptions
       : DEFAULT_PGLITE_OPTIONS_RESOLVER;
 
-    return new PGlite(pgliteOptions(this.config));
+    return new PGlite(pgliteOptions(config));
   }
 
   override async _acquireOnlyConnection() {
-    if (!this.driver) {
-      throw new Error("this.driver must exist.");
-    }
+    const driver = this.getDriver();
+    await driver.waitReady;
+    return driver;
+  }
 
-    await this.driver.waitReady;
-    return this.driver;
+  override destroyRawConnection(_connection: PGlite) {
+    // noop
   }
 
   override poolDefaults() {
     return defaults({ min: 1, max: 1 }, super.poolDefaults());
   }
 
-  override async checkVersion(connection: PGlite) {
+  override async checkVersion(connection: PGlite): Promise<string> {
     const result = await connection.query("select version();");
-    const row = result.rows[0];
-    const { version } = VersionRow.parse(row);
-    return this._parseVersion(version);
+    const row = result.rows[0] as { version?: string };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return this._parseVersion(row.version);
   }
 
-  override async _query(connection: PGlite, obj: Dictionary) {
-    // TODO: log to context
-    // {"method":"raw","sql":"drop table if exists \"books\" cascade;\ndrop table if exists \"users\" cascade;","bindings":[],"options":{},"__knexQueryUid":"WrzmahUhvTCqEbhBKlxp0"}
-    this.ormConfig.getLogger().log("pglite", `_query: ${JSON.stringify(obj)}`);
-    obj.response = await connection.query(obj.sql, obj.bindings);
+  override async _query(
+    connection: PGlite,
+    obj: QueryObject
+  ): Promise<QueryObject> {
+    if (!obj.sql) {
+      throw new Error("obj.sql must exists.");
+    }
+
+    if (obj.sql.split(";").filter((x) => x.trim().length !== 0).length > 1) {
+      obj.response = await connection.exec(obj.sql);
+    } else {
+      obj.response = await connection.query(obj.sql, obj.bindings ?? []);
+    }
+
     return obj;
   }
 
-  override processResponse(obj: Dictionary, runner: Dictionary): Dictionary {
-    obj.response.rowCount = obj.response.affectedRows;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  override processResponse(obj: QueryObject, runner: any) {
+    if (!obj.response) {
+      throw new Error("obj.response must exists.");
+    }
+
+    const responses = Array.isArray(obj.response)
+      ? obj.response
+      : [obj.response];
+    responses.forEach((x) => {
+      x.rowCount = x.affectedRows ?? null;
+      x.command = obj.method?.toUpperCase() ?? "";
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return super.processResponse(obj, runner);
   }
 }
