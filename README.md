@@ -18,7 +18,7 @@
 
 ```sh
 # npm
-npm install @mikro-orm/core @mikro-orm/postgresql mikro-orm-pglite
+npm install @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pglite
 # pnpm
-pnpm add @mikro-orm/core @mikro-orm/postgresql mikro-orm-pglite
+pnpm add @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pglite
 ```

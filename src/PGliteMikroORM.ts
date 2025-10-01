@@ -4,10 +4,10 @@ import {
   type EntityManager,
   type EntityManagerType,
   type IDatabaseDriver,
-  type Options,
 } from "@mikro-orm/core";
 import { type SqlEntityManager } from "@mikro-orm/postgresql";
 import { PGliteDriver } from "./PGliteDriver";
+import type { Options } from "./types";
 
 /**
  * @inheritDoc
@@ -42,11 +42,5 @@ export type PGliteOptions = Options<PGliteDriver>;
 
 /* istanbul ignore next */
 export function definePGliteConfig(options: PGliteOptions) {
-  return defineConfig({
-    driver: PGliteDriver,
-    // TODO: 실제 사용처 다시 검증해보기
-    // TODO: knex-pglite -> PGlite 인자 어떻게 전달되는지 확인하기
-    dbName: "postgres",
-    ...options,
-  });
+  return defineConfig({ driver: PGliteDriver, ...options });
 }

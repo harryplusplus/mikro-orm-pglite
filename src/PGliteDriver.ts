@@ -7,6 +7,9 @@ import { PGliteConnection } from "./PGliteConnection";
 
 export class PGliteDriver extends AbstractSqlDriver<PGliteConnection> {
   constructor(config: Configuration) {
-    super(config, new PostgreSqlPlatform(), PGliteConnection, ["knex"]);
+    super(config, new PostgreSqlPlatform(), PGliteConnection, [
+      "knex",
+      "@electric-sql/pglite",
+    ]);
   }
 }
