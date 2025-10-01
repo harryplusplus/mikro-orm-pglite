@@ -1,11 +1,11 @@
 import js from "@eslint/js";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import ts from "typescript-eslint";
 
 export default defineConfig([
+  globalIgnores(["dist/"]),
   {
     files: ["**/*.ts"],
-    ignores: ["**/*.d.ts"],
     plugins: { js, ts },
     extends: ["js/recommended", "ts/recommendedTypeChecked"],
     languageOptions: {

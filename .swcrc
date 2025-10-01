@@ -5,6 +5,11 @@
       "syntax": "typescript",
       "decorators": true
     },
-    "target": "es2020"
-  }
+    "target": "es2020",
+    "keepClassNames": true
+  },
+  "module": {
+    "type": "commonjs"
+  },
+  "sourceMaps": true
 }

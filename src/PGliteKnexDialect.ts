@@ -1,12 +1,40 @@
-import { PGlite, Results } from "@electric-sql/pglite";
-import { type Dictionary, PostgreSqlKnexDialect } from "@mikro-orm/postgresql";
+import { PGlite, type Results } from "@electric-sql/pglite";
+import {
+  type Dictionary,
+  type Knex,
+  PostgreSqlKnexDialect,
+} from "@mikro-orm/postgresql";
 import defaults from "lodash.defaults";
 import type { Constructor } from "type-fest";
 import type { PGliteKnexDialectConfig, PGliteOptionsResolver } from "./types";
-import type { __PostgreSqlKnexDialect } from "./unsafe-types";
 
 export const DEFAULT_PGLITE_OPTIONS_RESOLVER: PGliteOptionsResolver =
   () => ({});
+
+// kenx@3.1.0 knex/lib/dialects/postgresql Client_PG
+interface __Client_PG extends Knex.Client {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _driver(): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _acquireOnlyConnection(): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  checkVersion(connection: any): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _parseVersion(versionString: any): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _query(connection: any, obj: any): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  processResponse(obj: any, runner: any): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  destroyRawConnection(connection: any): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  poolDefaults(): any;
+}
+
+// @mikro-orm/postgresql@6.5.6 PostgreSqlKnexDialect
+// @ts-expect-error type mismatch
+// Knex.Client queryCompiler() tableCompiler() PostgreSqlKnexDialect
+interface __PostgreSqlKnexDialect extends __Client_PG, PostgreSqlKnexDialect {}
 
 // @ts-expect-error 타입 없는 의존성은 src/unsafe-types.d.ts에 정의함
 const __PostgreSqlKnexDialect: Constructor<__PostgreSqlKnexDialect> =
@@ -69,6 +97,7 @@ export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
   }
 
   override poolDefaults() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return defaults({ min: 1, max: 1 }, super.poolDefaults());
   }
 
