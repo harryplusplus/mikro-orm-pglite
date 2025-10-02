@@ -1,6 +1,6 @@
 {
   "name": "mikro-orm-pglite",
-  "version": "0.1.4-0",
+  "version": "0.1.4",
   "description": "PGlite driver for MikroORM.",
   "keywords": [
     "knex",
