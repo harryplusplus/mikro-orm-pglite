@@ -36,7 +36,7 @@
     "src"
   ],
   "scripts": {
-    "all": "run-s generate format lint test build",
+    "all": "run-s generate:readme-toc format lint test build",
     "build": "run-s build:cjs build:esm build:types",
     "build:cjs": "swc src -d dist --strip-leading-paths --delete-dir-on-start",
     "build:esm": "gen-esm-wrapper dist dist/index.mjs",
@@ -44,7 +44,6 @@
     "format": "run-p format:*",
     "format:config": "jsonsort -a package.json tsconfig.json cspell.json",
     "format:readme": "prettier -w README*.md",
-    "generate": "run-p generate:*",
     "generate:readme-toc": "for file in $(glob 'README*.md'); do markdown-toc -i \"$file\"; done",
     "lint": "eslint",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
