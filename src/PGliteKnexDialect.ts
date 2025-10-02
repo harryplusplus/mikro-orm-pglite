@@ -11,36 +11,27 @@ import type { PGliteKnexDialectConfig, PGliteOptionsResolver } from "./types";
 export const DEFAULT_PGLITE_OPTIONS_RESOLVER: PGliteOptionsResolver =
   () => ({});
 
-// kenx@3.1.0 knex/lib/dialects/postgresql Client_PG
+/**
+ * The type references are the dependency libraries
+ * @mikro-orm/postgresql@6.5.6 PostgreSqlKnexDialect
+ * and kenx@3.1.0 knex/lib/dialects/postgresql Client_PG.
+ */
 interface __Client_PG extends Knex.Client {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _driver(): any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _acquireOnlyConnection(): any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  checkVersion(connection: any): any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _parseVersion(versionString: any): any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _query(connection: any, obj: any): any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  processResponse(obj: any, runner: any): any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  destroyRawConnection(connection: any): any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  poolDefaults(): any;
+  _driver(): unknown;
+  _acquireOnlyConnection(): unknown;
+  checkVersion(connection: unknown): unknown;
+  _parseVersion(versionString: unknown): unknown;
+  _query(connection: unknown, obj: unknown): unknown;
+  processResponse(obj: unknown, runner: unknown): unknown;
+  tableCompiler(): unknown;
+  queryCompiler(): unknown;
 }
 
-// @mikro-orm/postgresql@6.5.6 PostgreSqlKnexDialect
-// @ts-expect-error type mismatch
-// Knex.Client queryCompiler() tableCompiler()
-// PostgreSqlKnexDialect queryCompiler() tableCompiler()
-interface __PostgreSqlKnexDialect extends __Client_PG, PostgreSqlKnexDialect {}
-
-// @ts-expect-error The actual implementation interface related to this type
-// error is the same as the upper library version.
-const __PostgreSqlKnexDialect: Constructor<__PostgreSqlKnexDialect> =
-  PostgreSqlKnexDialect;
+// @ts-expect-error The instance's interface is defined by the version of the
+// dependency @mikro-orm/postgresql (@mikro-orm/knex, knex).
+const __PostgreSqlKnexDialect: Constructor<
+  PostgreSqlKnexDialect & __Client_PG
+> = PostgreSqlKnexDialect;
 
 export interface PartialPgResult {
   command?: string;
@@ -52,8 +43,7 @@ export interface Response extends Results, PartialPgResult {}
 export interface QueryObject extends Dictionary {
   method?: string;
   sql?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bindings?: any[];
+  bindings?: unknown[];
   response?: Response | Response[];
 }
 
@@ -75,8 +65,7 @@ export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
       throw new Error("driver is not initialized.");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.driver;
+    return this.driver as PGlite;
   }
 
   override _driver() {
@@ -94,20 +83,19 @@ export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
     return driver;
   }
 
-  override destroyRawConnection(_connection: PGlite) {
+  override async destroyRawConnection(_connection: PGlite): Promise<void> {
     // noop
+    await Promise.resolve();
   }
 
   override poolDefaults() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return defaults({ min: 1, max: 1 }, super.poolDefaults());
   }
 
   override async checkVersion(connection: PGlite): Promise<string> {
     const result = await connection.query("select version();");
     const row = result.rows[0] as { version?: string };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this._parseVersion(row.version);
+    return this._parseVersion(row.version) as string;
   }
 
   override async _query(
@@ -127,8 +115,7 @@ export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
     return obj;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  override processResponse(obj: QueryObject, runner: any) {
+  override processResponse(obj: QueryObject, runner: unknown) {
     if (!obj.response) {
       throw new Error("obj.response must exists.");
     }
@@ -141,7 +128,6 @@ export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
       x.command = obj.method?.toUpperCase() ?? "";
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return super.processResponse(obj, runner);
   }
 }
