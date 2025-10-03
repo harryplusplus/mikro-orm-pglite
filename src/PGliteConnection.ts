@@ -1,6 +1,6 @@
 import { AbstractSqlConnection } from "@mikro-orm/postgresql";
+import type { Types } from ".";
 import { PGliteKnexDialect } from "./PGliteKnexDialect";
-import type { QueryResponse } from "./types";
 
 export class PGliteConnection extends AbstractSqlConnection {
   override async connect(): Promise<void> {
@@ -24,7 +24,7 @@ export class PGliteConnection extends AbstractSqlConnection {
   }
 
   protected override transformRawResult<T>(
-    response: QueryResponse,
+    response: Types.QueryResponse,
     method: "all" | "get" | "run"
   ): T {
     if (Array.isArray(response)) {

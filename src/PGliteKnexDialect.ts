@@ -5,9 +5,9 @@ import {
   type Constructor,
   type Knex,
 } from "@mikro-orm/postgresql";
+import type { Types } from ".";
 import { PGliteKnexDriver } from "./PGliteKnexDriver";
 import type { PoolDefaults, QueryObject } from "./types";
-import type * as TypesKnex from "./types-knex";
 
 /**
  * The type references are the dependency libraries
@@ -28,7 +28,7 @@ const TypedPostgreSqlKnexDialect = PostgreSqlKnexDialect as Constructor<
 >;
 
 export class PGliteKnexDialect extends TypedPostgreSqlKnexDialect {
-  constructor(config: TypesKnex.Config) {
+  constructor(config: Types.Knex.Config) {
     super(config);
   }
 

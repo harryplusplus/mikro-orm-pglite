@@ -1,7 +1,8 @@
 import type { PGlite, PGliteOptions } from "@electric-sql/pglite";
-import type { Dictionary, MaybePromise } from "@mikro-orm/core";
+import type { Configuration, Dictionary, MaybePromise } from "@mikro-orm/core";
 
 export interface OnCreateOptionsContext {
+  config: Configuration;
   options: PGliteOptions;
   custom: Dictionary;
 }
@@ -12,6 +13,7 @@ export interface OnCreateOptionsHandler {
 
 export interface ContextWithOwnedInstance {
   kind: "with-owned-instance";
+  config: Configuration;
   options: PGliteOptions;
   instance: PGlite;
   custom: Dictionary;
@@ -19,14 +21,22 @@ export interface ContextWithOwnedInstance {
 
 export interface ContextWithBorrowedInstance {
   kind: "with-borrowed-instance";
+  config: Configuration;
   instance: PGlite;
   custom: Dictionary;
 }
 
 export type Context = ContextWithOwnedInstance | ContextWithBorrowedInstance;
 
+export interface OnCloseContext {
+  config: Configuration;
+  options: PGliteOptions;
+  instance: PGlite;
+  custom: Dictionary;
+}
+
 export interface OnCloseHandler {
-  (context: ContextWithOwnedInstance): MaybePromise<void>;
+  (context: OnCloseContext): MaybePromise<void>;
 }
 
 export interface OptionsWithHandlers {
@@ -35,10 +45,14 @@ export interface OptionsWithHandlers {
   instance?: never;
 }
 
+export interface InstanceProvider {
+  (): MaybePromise<PGlite>;
+}
+
 export interface OptionsWithBorrowedInstance {
   onCreateOptions?: never;
   onClose?: never;
-  instance?: () => PGlite;
+  instance?: InstanceProvider;
 }
 
 export type Options = OptionsWithHandlers | OptionsWithBorrowedInstance;

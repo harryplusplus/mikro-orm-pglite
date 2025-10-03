@@ -7,6 +7,9 @@ import type {
   IDatabaseDriver,
 } from "@mikro-orm/core";
 import type * as Driver from "./types-driver";
+import type * as Knex from "./types-knex";
+import type * as PGlite from "./types-pglite";
+export { Driver, Knex, PGlite };
 
 export type Options<
   D extends IDatabaseDriver = IDatabaseDriver,

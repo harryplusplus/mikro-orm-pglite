@@ -1,10 +1,9 @@
 import { PGlite } from "@electric-sql/pglite";
+import type { Types } from ".";
 import { PGliteKnexDialect } from "./PGliteKnexDialect";
-import type * as TypesDriver from "./types-driver";
-import type * as TypesPGlite from "./types-pglite";
 
 export class PGliteKnexDriver {
-  private context: TypesPGlite.Context | null = null;
+  private context: Types.PGlite.Context | null = null;
   private connectPromise: Promise<void> | null = null;
   private readonly knexDialect: PGliteKnexDialect;
 
@@ -50,17 +49,19 @@ export class PGliteKnexDriver {
   private async connectInternal(): Promise<void> {
     const { onCreateOptions, ...options } = this.getOptions();
     if (options.instance) {
-      const instance = options.instance();
+      const instance = await options.instance();
       await instance.waitReady;
       this.context = {
         kind: "with-borrowed-instance",
+        config: this.knexDialect.ormConfig,
         instance,
         custom: {},
       };
       return;
     }
 
-    const context: TypesPGlite.OnCreateOptionsContext = {
+    const context: Types.PGlite.OnCreateOptionsContext = {
+      config: this.knexDialect.ormConfig,
       options: {},
       custom: {},
     };
@@ -77,10 +78,10 @@ export class PGliteKnexDriver {
     };
   }
 
-  private getOptions(): TypesPGlite.Options {
+  private getOptions(): Types.PGlite.Options {
     const { pglite } = this.knexDialect.ormConfig.get<
       "driverOptions",
-      TypesDriver.OptionsWithPGliteOptions
+      Types.Driver.OptionsWithPGliteOptions
     >("driverOptions");
     return pglite ?? {};
   }
