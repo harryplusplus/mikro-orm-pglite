@@ -9,10 +9,13 @@
 - [Languages](#languages)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [ORM Initialization](#orm-initialization)
-  - [Configuration File](#configuration-file)
-  - [Nest.js Integration](#nestjs-integration)
+  - [Initialization](#initialization)
+    - [Using MikroORM.init](#using-mikroorminit)
+    - [NestJS integration](#nestjs-integration)
 - [Options](#options)
+  - [`onCreateOptions`](#oncreateoptions)
+  - [`onClose`](#onclose)
+  - [`instance`](#instance)
 - [License](#license)
 
 <!-- tocstop -->
@@ -169,7 +172,7 @@ const options = {
         const blob = await context.instance.dumpDataDir("gzip");
         await fs.promises.writeFile(
           dataPath,
-          Buffer.from(await blob.arrayBuffer())
+          Buffer.from(await blob.arrayBuffer()),
         );
       },
     },

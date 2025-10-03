@@ -172,7 +172,7 @@ const options = {
         const blob = await context.instance.dumpDataDir("gzip");
         await fs.promises.writeFile(
           dataPath,
-          Buffer.from(await blob.arrayBuffer())
+          Buffer.from(await blob.arrayBuffer()),
         );
       },
     },
