@@ -32,6 +32,7 @@ export class PGliteKnexDriver {
     }
 
     this.context = null;
+    this.connectPromise = null;
   }
 
   acquire(): PGlite {
