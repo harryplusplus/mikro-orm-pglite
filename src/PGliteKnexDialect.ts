@@ -1,95 +1,55 @@
-import { PGlite, type Results } from "@electric-sql/pglite";
+import type { PGlite } from "@electric-sql/pglite";
 import {
-  type Dictionary,
-  type Knex,
   PostgreSqlKnexDialect,
+  Utils,
+  type Constructor,
+  type Knex,
 } from "@mikro-orm/postgresql";
-import defaults from "lodash.defaults";
-import type { Constructor } from "type-fest";
-import type { PGliteKnexDialectConfig, PGliteOptionsResolver } from "./types";
-
-export const DEFAULT_PGLITE_OPTIONS_RESOLVER: PGliteOptionsResolver =
-  () => ({});
+import { PGliteKnexDriver } from "./PGliteKnexDriver";
+import type { PoolDefaults, QueryObject } from "./types";
+import type * as TypesKnex from "./types-knex";
 
 /**
  * The type references are the dependency libraries
  * @mikro-orm/postgresql@6.5.6 PostgreSqlKnexDialect
  * and kenx@3.1.0 knex/lib/dialects/postgresql Client_PG.
  */
-interface __Client_PG extends Knex.Client {
+interface KnexClientPG extends Knex.Client {
   _driver(): unknown;
   _acquireOnlyConnection(): unknown;
   checkVersion(connection: unknown): unknown;
   _parseVersion(versionString: unknown): unknown;
   _query(connection: unknown, obj: unknown): unknown;
   processResponse(obj: unknown, runner: unknown): unknown;
-  tableCompiler(): unknown;
-  queryCompiler(): unknown;
 }
 
-// @ts-expect-error The instance's interface is defined by the version of the
-// dependency @mikro-orm/postgresql (@mikro-orm/knex, knex).
-const __PostgreSqlKnexDialect: Constructor<
-  PostgreSqlKnexDialect & __Client_PG
-> = PostgreSqlKnexDialect;
+const TypedPostgreSqlKnexDialect = PostgreSqlKnexDialect as Constructor<
+  PostgreSqlKnexDialect & KnexClientPG
+>;
 
-export interface PartialPgResult {
-  command?: string;
-  rowCount?: number | null;
-}
-
-export interface Response extends Results, PartialPgResult {}
-
-export interface QueryObject extends Dictionary {
-  method?: string;
-  sql?: string;
-  bindings?: unknown[];
-  response?: Response | Response[];
-}
-
-export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
-  constructor(config: PGliteKnexDialectConfig) {
+export class PGliteKnexDialect extends TypedPostgreSqlKnexDialect {
+  constructor(config: TypesKnex.Config) {
     super(config);
   }
 
-  getConfig(): PGliteKnexDialectConfig {
-    if (!this.config) {
-      throw new Error("config is not initialized.");
-    }
-
-    return this.config;
+  override _driver(): PGliteKnexDriver {
+    return new PGliteKnexDriver(this);
   }
 
-  getDriver(): PGlite {
-    if (!this.driver) {
-      throw new Error("driver is not initialized.");
-    }
-
-    return this.driver as PGlite;
+  override _acquireOnlyConnection(): Promise<PGlite> {
+    const connection = this.getKnexDriver().acquire();
+    return Promise.resolve(connection);
   }
 
-  override _driver() {
-    const config = this.getConfig();
-    const pgliteOptions = config.pgliteOptions
-      ? config.pgliteOptions
-      : DEFAULT_PGLITE_OPTIONS_RESOLVER;
-
-    return new PGlite(pgliteOptions(config));
+  override destroyRawConnection(connection: PGlite): Promise<void> {
+    return Promise.resolve(this.getKnexDriver().release(connection));
   }
 
-  override async _acquireOnlyConnection() {
-    const driver = this.getDriver();
-    await driver.waitReady;
-    return driver;
-  }
-
-  override async destroyRawConnection(_connection: PGlite): Promise<void> {
-    // noop
-    await Promise.resolve();
-  }
-
-  override poolDefaults() {
-    return defaults({ min: 1, max: 1 }, super.poolDefaults());
+  override poolDefaults(): PoolDefaults {
+    return Utils.mergeConfig(super.poolDefaults(), {
+      min: 1,
+      max: 1,
+    }) as PoolDefaults;
   }
 
   override async checkVersion(connection: PGlite): Promise<string> {
@@ -120,14 +80,25 @@ export class PGliteKnexDialect extends __PostgreSqlKnexDialect {
       throw new Error("obj.response must exists.");
     }
 
-    const responses = Array.isArray(obj.response)
-      ? obj.response
-      : [obj.response];
-    responses.forEach((x) => {
-      x.rowCount = x.affectedRows ?? null;
-      x.command = obj.method?.toUpperCase() ?? "";
+    const { response } = obj;
+    (Array.isArray(response) ? response : [response]).forEach((x) => {
+      x.affectedRows ??= 0;
     });
 
-    return super.processResponse(obj, runner);
+    if (obj.output) {
+      return obj.output.call(runner, response);
+    }
+
+    if (obj.method === "raw") return response;
+
+    throw new Error(`Unexpected method. method: ${obj.method}`);
+  }
+
+  getKnexDriver(): PGliteKnexDriver {
+    if (!(this.driver instanceof PGliteKnexDriver)) {
+      throw new Error("driver is not initialized.");
+    }
+
+    return this.driver;
   }
 }

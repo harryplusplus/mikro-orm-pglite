@@ -13,7 +13,7 @@ import type { Options } from "./types";
  * @inheritDoc
  */
 export class PGliteMikroORM<
-  EM extends EntityManager = SqlEntityManager
+  EM extends EntityManager = SqlEntityManager,
 > extends MikroORM<PGliteDriver, EM> {
   private static DRIVER = PGliteDriver;
 
@@ -22,7 +22,7 @@ export class PGliteMikroORM<
    */
   static override async init<
     D extends IDatabaseDriver = PGliteDriver,
-    EM extends EntityManager = D[typeof EntityManagerType] & EntityManager
+    EM extends EntityManager = D[typeof EntityManagerType] & EntityManager,
   >(options?: Options<D, EM>): Promise<MikroORM<D, EM>> {
     return super.init(options);
   }
@@ -32,7 +32,7 @@ export class PGliteMikroORM<
    */
   static override initSync<
     D extends IDatabaseDriver = PGliteDriver,
-    EM extends EntityManager = D[typeof EntityManagerType] & EntityManager
+    EM extends EntityManager = D[typeof EntityManagerType] & EntityManager,
   >(options: Options<D, EM>): MikroORM<D, EM> {
     return super.initSync(options);
   }

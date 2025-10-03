@@ -1,13 +1,13 @@
 import {
   BigIntType,
+  Constructor,
   Entity,
   Index,
   ManyToOne,
   PrimaryKey,
   Property,
   type Ref,
-} from "@mikro-orm/postgresql";
-import { Constructor } from "type-fest";
+} from "@mikro-orm/core";
 import { MikroORM } from "../src";
 import { PGliteOptions } from "../src/PGliteMikroORM";
 
@@ -38,9 +38,8 @@ export class Book {
 
 export async function initOrm(options?: PGliteOptions) {
   const orm = await MikroORM.init({
-    dbName: "test-db",
+    dbName: "my-db",
     entities: [User, Book],
-    debug: false,
     ...options,
   });
   await orm.schema.refreshDatabase();
