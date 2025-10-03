@@ -150,6 +150,8 @@ interface OnCloseContext {
 
 `options`는 PGlite 인스턴스의 생성자 매개변수입니다. PGlite 인스턴스를 초기화한 값입니다.
 
+`instance`는 PGlite 인스턴스입니다.
+
 `custom`은 사용자 정의 객체입니다. `onCreateOptions`에서 변경된 값을 사용할 수 있습니다.
 
 `onClose`의 사용사례 중 하나는 PGlite의 메모리 데이터를 파일 시스템에 저장하고 로드하는 것입니다. PGlite는 설정에 따라 메모리, 파일 시스템 모드로 동작할 수 있습니다. 아래 예제는 메모리 모드로 동작한 이후에 파일 시스템에 저장하는 방법입니다.
@@ -172,7 +174,7 @@ const options = {
         const blob = await context.instance.dumpDataDir("gzip");
         await fs.promises.writeFile(
           dataPath,
-          Buffer.from(await blob.arrayBuffer()),
+          Buffer.from(await blob.arrayBuffer())
         );
       },
     },

@@ -150,6 +150,8 @@ The `context` property of `onClose` is as follows:
 
 `options` is a constructor parameter for the PGlite instance. It contains the initialized values ​​for the PGlite instance.
 
+`instance` is a PGlite instance.
+
 `custom` is a user-defined object. You can use the modified values ​​in `onCreateOptions`.
 
 One use case for `onClose` is saving and loading PGlite's memory data to and from the file system. PGlite can operate in either memory or file system mode, depending on its configuration. The example below demonstrates how to save data to the file system after operating in memory mode.
@@ -172,7 +174,7 @@ const options = {
         const blob = await context.instance.dumpDataDir("gzip");
         await fs.promises.writeFile(
           dataPath,
-          Buffer.from(await blob.arrayBuffer()),
+          Buffer.from(await blob.arrayBuffer())
         );
       },
     },
