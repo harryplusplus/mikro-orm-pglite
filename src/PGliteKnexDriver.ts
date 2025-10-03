@@ -1,6 +1,6 @@
 import { PGlite } from "@electric-sql/pglite";
 import type { Types } from ".";
-import { PGliteKnexDialect } from "./PGliteKnexDialect";
+import type { PGliteKnexDialect } from "./PGliteKnexDialect";
 
 export class PGliteKnexDriver {
   private context: Types.PGlite.Context | null = null;
