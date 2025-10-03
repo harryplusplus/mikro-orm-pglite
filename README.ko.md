@@ -77,7 +77,7 @@ export class AppModule {}
 
 ## 옵션
 
-MikroORM의 `options.driverOptions.pglite` 속성을 통해 추가적인 구성을 할 수 있습니다.
+MikroORM의 `driverOptions.pglite` 속성을 통해 추가적인 구성을 할 수 있습니다.
 
 ### `onCreateOptions`
 
@@ -95,9 +95,12 @@ interface OnCreateOptionsContext {
 }
 ```
 
-`onCreateOptions`의 `context`의 속성은 다음과 같습니다.  
-`config`는 MikroORM 인스턴스의 설정 객체입니다.  
-`options`는 PGlite 인스턴스의 생성자 매개변수입니다. `onCreateOptions` 호출 이후 변경된 값을 사용해서 PGlite 인스턴스를 초기화합니다.  
+`onCreateOptions`의 `context`의 속성은 다음과 같습니다.
+
+`config`는 MikroORM 인스턴스의 설정 객체입니다.
+
+`options`는 PGlite 인스턴스의 생성자 매개변수입니다. `onCreateOptions` 호출 이후 변경된 값을 사용해서 PGlite 인스턴스를 초기화합니다.
+
 `custom`은 사용자 정의 객체입니다. 변경된 값은 `onClose` 옵션에서 사용할 수 있습니다. 사용 사례는 `onClose` 섹션에서 설명하겠습니다.
 
 `onCreateOptions`의 사용사례 중 하나는 오류를 해결하기 위한 `debug` 속성 변경입니다. PGlite는 WASM을 사용한 구현이기 때문에, 문제 발생시 호출 스택만으로 문제를 해결하는 것은 쉽지 않기 때문입니다.
@@ -141,9 +144,12 @@ interface OnCloseContext {
 }
 ```
 
-`onClose`의 `context`의 속성은 다음과 같습니다.  
-`config`는 MikroORM 인스턴스의 설정 객체입니다.  
-`options`는 PGlite 인스턴스의 생성자 매개변수입니다. PGlite 인스턴스를 초기화한 값입니다.  
+`onClose`의 `context`의 속성은 다음과 같습니다.
+
+`config`는 MikroORM 인스턴스의 설정 객체입니다.
+
+`options`는 PGlite 인스턴스의 생성자 매개변수입니다. PGlite 인스턴스를 초기화한 값입니다.
+
 `custom`은 사용자 정의 객체입니다. `onCreateOptions`에서 변경된 값을 사용할 수 있습니다.
 
 `onClose`의 사용사례 중 하나는 PGlite의 메모리 데이터를 파일 시스템에 저장하고 로드하는 것입니다. PGlite는 설정에 따라 메모리, 파일 시스템 모드로 동작할 수 있습니다. 아래 예제는 메모리 모드로 동작한 이후에 파일 시스템에 저장하는 방법입니다.
