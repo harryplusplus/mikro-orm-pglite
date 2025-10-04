@@ -1,25 +1,13 @@
-import type { Results } from "@electric-sql/pglite";
+import type { PGlite, Results } from "@electric-sql/pglite";
 import type {
   Options as CoreOptions,
-  Dictionary,
   EntityManager,
   EntityManagerType,
   IDatabaseDriver,
 } from "@mikro-orm/core";
-import type * as Driver from "./types-driver";
-import type * as Knex from "./types-knex";
-import type * as PGlite from "./types-pglite";
-export { Driver, Knex, PGlite };
+import type { Knex } from "@mikro-orm/postgresql";
 
-export type Options<
-  D extends IDatabaseDriver = IDatabaseDriver,
-  EM extends D[typeof EntityManagerType] &
-    EntityManager = D[typeof EntityManagerType] & EntityManager,
-> = CoreOptions<D, EM> & {
-  driverOptions?: Driver.Options;
-};
-
-export interface QueryObject extends Dictionary {
+export interface QueryObject {
   method?: string;
   sql?: string;
   bindings?: unknown[];
@@ -31,8 +19,20 @@ export type QueryResponse =
   | Results<Record<string, unknown>>
   | Results<Record<string, unknown>>[];
 
-export interface PoolDefaults {
-  min: number;
-  max: number;
-  propagateCreateError: boolean;
+export interface PGliteProvider {
+  (): PGlite;
 }
+
+export interface DriverOptionsWithPGlite {
+  pglite?: PGliteProvider;
+}
+
+export type DriverOptions = (Knex.Config & DriverOptionsWithPGlite) | Knex;
+
+export type Options<
+  D extends IDatabaseDriver = IDatabaseDriver,
+  EM extends D[typeof EntityManagerType] &
+    EntityManager = D[typeof EntityManagerType] & EntityManager,
+> = CoreOptions<D, EM> & {
+  driverOptions?: DriverOptions;
+};

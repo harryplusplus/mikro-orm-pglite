@@ -1,30 +1,70 @@
-import { AbstractSqlConnection } from "@mikro-orm/postgresql";
-import type { Types } from ".";
+import { PGlite } from "@electric-sql/pglite";
+import {
+  AbstractSqlConnection,
+  type Configuration,
+  type ConnectionOptions,
+  type Knex,
+  Utils,
+} from "@mikro-orm/postgresql";
 import { PGliteKnexDialect } from "./PGliteKnexDialect";
+import type { DriverOptionsWithPGlite, QueryResponse } from "./types";
 
 export class PGliteConnection extends AbstractSqlConnection {
-  override async connect(): Promise<void> {
-    await super.connect();
-    await this.getKnexClient().getKnexDriver().connect();
-    this.connected = true;
+  private readonly pglite: PGlite;
+
+  constructor(
+    config: Configuration,
+    options?: ConnectionOptions,
+    type?: "read" | "write"
+  ) {
+    super(config, options, type);
+
+    const { pglite = () => new PGlite() } = this.config.get<
+      "driverOptions",
+      DriverOptionsWithPGlite
+    >("driverOptions");
+    this.pglite = pglite();
   }
 
-  override async close(force?: boolean): Promise<void> {
-    await this.getKnexClient().getKnexDriver().close();
-    await super.close(force);
+  override async connect(): Promise<void> {
+    await this.pglite.waitReady;
+    this.createKnex();
   }
 
   override createKnex() {
     this.client = this.createKnexClient(PGliteKnexDialect as unknown as string);
-    this.getKnexClient().ormConfig = this.config;
+    (this.getKnex().client as PGliteKnexDialect).ormConfig = this.config;
+    this.connected = true;
   }
 
-  override getDefaultClientUrl() {
-    return "mikro-orm-pglite://";
+  protected override getKnexOptions(type: string): Knex.Config {
+    return Utils.mergeConfig(
+      {
+        client: type,
+        connection: {
+          dbName: this.config.get("dbName"),
+          user: this.config.get("user"),
+          schema: this.config.get("schema"),
+        },
+        pool: this.config.get("pool"),
+      },
+      this.config.get("driverOptions"),
+      {
+        pglite: () => this.pglite,
+      }
+    ) as Knex.Config;
+  }
+
+  override getClientUrl(): string {
+    return "";
+  }
+
+  override getDefaultClientUrl(): string {
+    return "";
   }
 
   protected override transformRawResult<T>(
-    response: Types.QueryResponse,
+    response: QueryResponse,
     method: "all" | "get" | "run"
   ): T {
     if (Array.isArray(response)) {
@@ -48,12 +88,7 @@ export class PGliteConnection extends AbstractSqlConnection {
     } as T;
   }
 
-  private getKnexClient(): PGliteKnexDialect {
-    const knexClient = this.getKnex().client as unknown;
-    if (!(knexClient instanceof PGliteKnexDialect)) {
-      throw new Error("Knex client is not initialized.");
-    }
-
-    return knexClient;
+  getPGlite(): PGlite {
+    return this.pglite;
   }
 }

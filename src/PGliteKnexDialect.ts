@@ -1,13 +1,12 @@
-import type { PGlite } from "@electric-sql/pglite";
+import { PGlite } from "@electric-sql/pglite";
 import {
   PostgreSqlKnexDialect,
   Utils,
   type Constructor,
   type Knex,
 } from "@mikro-orm/postgresql";
-import type { Types } from ".";
-import { PGliteKnexDriver } from "./PGliteKnexDriver";
-import type { PoolDefaults, QueryObject } from "./types";
+import { Readable, type Transform } from "stream";
+import type { DriverOptionsWithPGlite, QueryObject } from "./types";
 
 /**
  * The type references are the dependency libraries
@@ -15,12 +14,20 @@ import type { PoolDefaults, QueryObject } from "./types";
  * and kenx@3.1.0 knex/lib/dialects/postgresql Client_PG.
  */
 interface KnexClientPG extends Knex.Client {
-  _driver(): unknown;
+  searchPath: unknown;
   _acquireOnlyConnection(): unknown;
-  checkVersion(connection: unknown): unknown;
+  _driver(): unknown;
   _parseVersion(versionString: unknown): unknown;
   _query(connection: unknown, obj: unknown): unknown;
+  _stream(
+    connection: unknown,
+    obj: unknown,
+    stream: unknown,
+    options: unknown
+  ): unknown;
+  checkVersion(connection: unknown): unknown;
   processResponse(obj: unknown, runner: unknown): unknown;
+  setSchemaSearchPath(connection: unknown, searchPath: unknown): unknown;
 }
 
 const TypedPostgreSqlKnexDialect = PostgreSqlKnexDialect as Constructor<
@@ -28,34 +35,34 @@ const TypedPostgreSqlKnexDialect = PostgreSqlKnexDialect as Constructor<
 >;
 
 export class PGliteKnexDialect extends TypedPostgreSqlKnexDialect {
-  constructor(config: Types.Knex.Config) {
+  constructor(config: Knex.Config) {
     super(config);
   }
 
-  override _driver(): PGliteKnexDriver {
-    return new PGliteKnexDriver(this);
+  // Knex.Client overrides begin
+
+  override destroyRawConnection(_connection: PGlite): Promise<void> {
+    // noop
+    return Promise.resolve();
   }
 
-  override _acquireOnlyConnection(): Promise<PGlite> {
-    const connection = this.getKnexDriver().acquire();
-    return Promise.resolve(connection);
-  }
-
-  override destroyRawConnection(connection: PGlite): Promise<void> {
-    return Promise.resolve(this.getKnexDriver().release(connection));
-  }
-
-  override poolDefaults(): PoolDefaults {
+  override poolDefaults(): ReturnType<Knex.Client["poolDefaults"]> {
     return Utils.mergeConfig(super.poolDefaults(), {
       min: 1,
       max: 1,
-    }) as PoolDefaults;
+    }) as ReturnType<Knex.Client["poolDefaults"]>;
   }
 
-  override async checkVersion(connection: PGlite): Promise<string> {
-    const result = await connection.query("select version();");
-    const row = result.rows[0] as { version?: string };
-    return this._parseVersion(row.version) as string;
+  // Knex.Client overrides end
+
+  // Knex.Client_PG overrides begin
+
+  override _acquireOnlyConnection(): Promise<PGlite> {
+    return Promise.resolve(this.driver);
+  }
+
+  override _driver(): PGlite {
+    return (this.config as Required<DriverOptionsWithPGlite>).pglite();
   }
 
   override async _query(
@@ -63,8 +70,10 @@ export class PGliteKnexDialect extends TypedPostgreSqlKnexDialect {
     obj: QueryObject
   ): Promise<QueryObject> {
     if (!obj.sql) {
-      throw new Error("obj.sql must exists.");
+      throw new Error("The query is empty");
     }
+
+    console.log("obj.method", obj.method);
 
     if (obj.sql.split(";").filter((x) => x.trim().length !== 0).length > 1) {
       obj.response = await connection.exec(obj.sql);
@@ -75,9 +84,40 @@ export class PGliteKnexDialect extends TypedPostgreSqlKnexDialect {
     return obj;
   }
 
+  override async _stream(
+    connection: PGlite,
+    obj: QueryObject,
+    stream: Transform,
+    _options: unknown
+  ) {
+    if (!obj.sql) {
+      throw new Error("The query is empty");
+    }
+
+    // PGlite does not support query streaming. This implementation only
+    // matches the interface for compatibility.
+    const results = await connection.query(obj.sql, obj.bindings ?? []);
+    const queryStream = Readable.from(results.rows);
+
+    return new Promise((resolve, reject) => {
+      queryStream.on("error", (e) => {
+        stream.emit("error", e);
+        reject(e);
+      });
+      stream.on("end", resolve);
+      queryStream.pipe(stream);
+    });
+  }
+
+  override async checkVersion(connection: PGlite): Promise<string> {
+    const result = await connection.query("select version();");
+    const row = result.rows[0] as { version?: string };
+    return this._parseVersion(row.version) as string;
+  }
+
   override processResponse(obj: QueryObject, runner: unknown) {
     if (!obj.response) {
-      throw new Error("obj.response must exists.");
+      throw new Error("obj.response must exist.");
     }
 
     const { response } = obj;
@@ -94,11 +134,44 @@ export class PGliteKnexDialect extends TypedPostgreSqlKnexDialect {
     throw new Error(`Unexpected method. method: ${obj.method}`);
   }
 
-  getKnexDriver(): PGliteKnexDriver {
-    if (!(this.driver instanceof PGliteKnexDriver)) {
-      throw new Error("driver is not initialized.");
+  override async setSchemaSearchPath(connection: PGlite, searchPath: unknown) {
+    let path = searchPath || this.searchPath;
+    if (!path) {
+      return Promise.resolve(true);
     }
 
-    return this.driver;
+    if (!Array.isArray(path) && typeof path !== "string") {
+      throw new TypeError(
+        `knex: Expected searchPath to be Array/String, got: ${typeof path}`
+      );
+    }
+
+    if (typeof path === "string") {
+      if (path.includes(",")) {
+        const parts = path.split(",");
+        const arraySyntax = `[${parts
+          .map((searchPath) => `'${searchPath}'`)
+          .join(", ")}]`;
+        this.ormConfig
+          .getLogger()
+          .warn(
+            "PGlite",
+            `Detected comma in searchPath "${path}".` +
+              `If you are trying to specify multiple schemas, use Array syntax: ${arraySyntax}`
+          );
+      }
+      path = [path];
+    }
+
+    path = (path as string[]).map((schemaName) => `"${schemaName}"`).join(",");
+
+    await connection.exec(`set search_path to ${path as string}`);
+    return true;
+  }
+
+  // Knex.Client_PG overrides end
+
+  getPGlite(): PGlite {
+    return this.driver as PGlite;
   }
 }
