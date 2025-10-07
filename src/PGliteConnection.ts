@@ -1,36 +1,8 @@
-import { PGlite } from "@electric-sql/pglite";
-import {
-  AbstractSqlConnection,
-  type Configuration,
-  type ConnectionOptions,
-  type Knex,
-  Utils,
-} from "@mikro-orm/postgresql";
-import { PGliteKnexDialect } from "./PGliteKnexDialect";
-import type { DriverOptionsWithPGlite, QueryResponse } from "./types";
+import { Results } from "@electric-sql/pglite";
+import { AbstractSqlConnection, Knex, Utils } from "@mikro-orm/postgresql";
+import { PGliteKnexDialect } from "./PGliteKnexDialect.js";
 
 export class PGliteConnection extends AbstractSqlConnection {
-  private readonly pglite: PGlite;
-
-  constructor(
-    config: Configuration,
-    options?: ConnectionOptions,
-    type?: "read" | "write"
-  ) {
-    super(config, options, type);
-
-    const { pglite = () => new PGlite() } = this.config.get<
-      "driverOptions",
-      DriverOptionsWithPGlite
-    >("driverOptions");
-    this.pglite = pglite();
-  }
-
-  override async connect(): Promise<void> {
-    await this.pglite.waitReady;
-    this.createKnex();
-  }
-
   override createKnex() {
     this.client = this.createKnexClient(PGliteKnexDialect as unknown as string);
     (this.getKnex().client as PGliteKnexDialect).ormConfig = this.config;
@@ -41,17 +13,9 @@ export class PGliteConnection extends AbstractSqlConnection {
     return Utils.mergeConfig(
       {
         client: type,
-        connection: {
-          dbName: this.config.get("dbName"),
-          user: this.config.get("user"),
-          schema: this.config.get("schema"),
-        },
         pool: this.config.get("pool"),
       },
-      this.config.get("driverOptions"),
-      {
-        pglite: () => this.pglite,
-      }
+      this.config.get("driverOptions")
     ) as Knex.Config;
   }
 
@@ -64,7 +28,7 @@ export class PGliteConnection extends AbstractSqlConnection {
   }
 
   protected override transformRawResult<T>(
-    response: QueryResponse,
+    response: Results | Results[],
     method: "all" | "get" | "run"
   ): T {
     if (Array.isArray(response)) {
@@ -82,13 +46,10 @@ export class PGliteConnection extends AbstractSqlConnection {
     const row0 = response.rows[0];
     return {
       affectedRows: response.affectedRows,
-      insertId: row0 ? row0["id"] : 0,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      insertId: row0?.["id"] ?? 0,
       row: response.rows[0],
       rows: response.rows,
     } as T;
-  }
-
-  getPGlite(): PGlite {
-    return this.pglite;
   }
 }

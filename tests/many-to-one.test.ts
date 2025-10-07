@@ -1,17 +1,28 @@
+import { PGlite } from "@electric-sql/pglite";
 import { ref, wrap } from "@mikro-orm/core";
-import { MikroORM } from "../src";
-import { Book, expectAny, initOrm, User } from "./common";
+import { afterAll, beforeAll, expect, test } from "vitest";
+import { MikroORM, PGliteConnectionConfig } from "../src/index.js";
+import { Book, initOrm, User } from "./common.js";
 
 let orm: MikroORM;
 let em: MikroORM["em"];
+let pglite: PGlite;
 
 beforeAll(async () => {
-  orm = await initOrm();
+  pglite = await PGlite.create();
+  orm = await initOrm({
+    driverOptions: {
+      connection: {
+        pglite: () => pglite,
+      } satisfies PGliteConnectionConfig,
+    },
+  });
   em = orm.em.fork();
 });
 
 afterAll(async () => {
   await orm?.close();
+  await pglite?.close();
 });
 
 let bookId: string;
@@ -35,12 +46,16 @@ test("create", async () => {
   book.user = ref(user);
   await em.flush();
 
-  expect(book).toMatchObject({ id: expectAny(String) });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  expect(book).toMatchObject({ id: expect.any(String) });
   expect(book.user.unwrap()).toEqual({
-    id: expectAny(String),
-    myDefault: expectAny(String),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    id: expect.any(String),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    myDefault: expect.any(String),
     myOptional: null,
-    createdAt: expectAny(Date),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    createdAt: expect.any(Date),
   });
   expect(wrap(book).isInitialized()).toBe(true);
   expect(wrap(book, true).hasPrimaryKey()).toBe(true);

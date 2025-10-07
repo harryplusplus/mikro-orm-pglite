@@ -1,6 +1,5 @@
 import {
   BigIntType,
-  Constructor,
   Entity,
   Index,
   ManyToOne,
@@ -8,8 +7,8 @@ import {
   Property,
   type Ref,
 } from "@mikro-orm/core";
-import { MikroORM } from "../src";
-import { PGliteOptions } from "../src/PGliteMikroORM";
+import { MikroORM } from "../src/index.js";
+import { PGliteOptions } from "../src/PGliteMikroORM.js";
 
 @Entity({ tableName: "users" })
 @Index({ properties: ["myDefault", "myOptional"] })
@@ -44,8 +43,4 @@ export async function initOrm(options?: PGliteOptions) {
   });
   await orm.schema.refreshDatabase();
   return orm;
-}
-
-export function expectAny<T>(constructor: Constructor<T>): T {
-  return expect.any(constructor) as T;
 }

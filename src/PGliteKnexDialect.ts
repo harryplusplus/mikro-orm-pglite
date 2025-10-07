@@ -1,177 +1,112 @@
-import { PGlite } from "@electric-sql/pglite";
+import type { PGliteInterface } from "@electric-sql/pglite";
 import {
-  PostgreSqlKnexDialect,
-  Utils,
-  type Constructor,
-  type Knex,
-} from "@mikro-orm/postgresql";
-import { Readable, type Transform } from "stream";
-import type { DriverOptionsWithPGlite, QueryObject } from "./types";
+  _query,
+  _stream,
+  patchPGliteDialect,
+  PGliteDialectContext,
+  poolDefaults,
+  processResponse,
+  type PoolDefaults,
+  type QueryObject,
+} from "@harryplusplus/knex-pglite";
+import { PostgreSqlKnexDialect } from "@mikro-orm/postgresql";
 
-/**
- * The type references are the dependency libraries
- * @mikro-orm/postgresql@6.5.6 PostgreSqlKnexDialect
- * and kenx@3.1.0 knex/lib/dialects/postgresql Client_PG.
- */
-interface KnexClientPG extends Knex.Client {
-  searchPath: unknown;
-  _acquireOnlyConnection(): unknown;
-  _driver(): unknown;
-  _parseVersion(versionString: unknown): unknown;
-  _query(connection: unknown, obj: unknown): unknown;
-  _stream(
-    connection: unknown,
-    obj: unknown,
-    stream: unknown,
-    options: unknown
-  ): unknown;
-  checkVersion(connection: unknown): unknown;
-  processResponse(obj: unknown, runner: unknown): unknown;
-  setSchemaSearchPath(connection: unknown, searchPath: unknown): unknown;
-}
+export class PGliteKnexDialect extends PostgreSqlKnexDialect {
+  _driver(): PGliteDialectContext {
+    return new PGliteDialectContext({
+      getConnectionSettings: () => {
+        if (!("connectionSettings" in this)) {
+          throw new Error("this.connectionSettings must exist.");
+        }
 
-const TypedPostgreSqlKnexDialect = PostgreSqlKnexDialect as Constructor<
-  PostgreSqlKnexDialect & KnexClientPG
->;
+        if (typeof this["connectionSettings"] !== "object") {
+          throw new Error("this.connectionSettings must be object type.");
+        }
 
-export class PGliteKnexDialect extends TypedPostgreSqlKnexDialect {
-  constructor(config: Knex.Config) {
-    super(config);
+        return this["connectionSettings"] as object;
+      },
+      getSearchPath: () => {
+        if (
+          !("searchPath" in this) ||
+          typeof this["searchPath"] !== "string" ||
+          Array.isArray(this["searchPath"])
+        ) {
+          return null;
+        }
+
+        return this["searchPath"];
+      },
+      parseVersion: (version) => {
+        if (
+          !("_parseVersion" in this) ||
+          typeof this["_parseVersion"] !== "function"
+        ) {
+          throw new Error("this._parseVersion must exist.");
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+        const parsedVersion = this["_parseVersion"](version);
+        if (typeof parsedVersion !== "string") {
+          throw new Error("The version must be string type.");
+        }
+
+        return parsedVersion;
+      },
+      log: (level, message) => {
+        if (level === "warn") {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+          this["logger"]?.["warn"]?.(message);
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+          this["logger"]?.["debug"]?.(message);
+        }
+      },
+    });
   }
 
-  // Knex.Client overrides begin
-
-  override destroyRawConnection(_connection: PGlite): Promise<void> {
-    // noop
-    return Promise.resolve();
+  getContext(): PGliteDialectContext {
+    return this["driver"] as PGliteDialectContext;
   }
 
-  override poolDefaults(): ReturnType<Knex.Client["poolDefaults"]> {
-    return Utils.mergeConfig(super.poolDefaults(), {
-      min: 1,
-      max: 1,
-    }) as ReturnType<Knex.Client["poolDefaults"]>;
+  _acquireOnlyConnection(): Promise<PGliteInterface> {
+    return this.getContext()._acquireOnlyConnection();
   }
 
-  // Knex.Client overrides end
-
-  // Knex.Client_PG overrides begin
-
-  override _acquireOnlyConnection(): Promise<PGlite> {
-    return Promise.resolve(this.driver);
+  destroyRawConnection(connection: PGliteInterface): Promise<void> {
+    return this.getContext().destroyRawConnection(connection);
   }
 
-  override _driver(): PGlite {
-    return (this.config as Required<DriverOptionsWithPGlite>).pglite();
+  checkVersion(connection: PGliteInterface): Promise<string> {
+    return this.getContext().checkVersion(connection);
   }
 
-  override async _query(
-    connection: PGlite,
-    obj: QueryObject
-  ): Promise<QueryObject> {
-    if (!obj.sql) {
-      throw new Error("The query is empty");
-    }
-
-    console.log("obj.method", obj.method);
-
-    if (obj.sql.split(";").filter((x) => x.trim().length !== 0).length > 1) {
-      obj.response = await connection.exec(obj.sql);
-    } else {
-      obj.response = await connection.query(obj.sql, obj.bindings ?? []);
-    }
-
-    return obj;
-  }
-
-  override async _stream(
-    connection: PGlite,
-    obj: QueryObject,
-    stream: Transform,
-    _options: unknown
+  setSchemaSearchPath(
+    connection: PGliteInterface,
+    searchPath: string | string[]
   ) {
-    if (!obj.sql) {
-      throw new Error("The query is empty");
-    }
-
-    // PGlite does not support query streaming. This implementation only
-    // matches the interface for compatibility.
-    const results = await connection.query(obj.sql, obj.bindings ?? []);
-    const queryStream = Readable.from(results.rows);
-
-    return new Promise((resolve, reject) => {
-      queryStream.on("error", (e) => {
-        stream.emit("error", e);
-        reject(e);
-      });
-      stream.on("end", resolve);
-      queryStream.pipe(stream);
-    });
+    return this.getContext().setSchemaSearchPath(connection, searchPath);
   }
 
-  override async checkVersion(connection: PGlite): Promise<string> {
-    const result = await connection.query("select version();");
-    const row = result.rows[0] as { version?: string };
-    return this._parseVersion(row.version) as string;
+  _stream(
+    connection: PGliteInterface,
+    obj: QueryObject,
+    stream: NodeJS.WritableStream,
+    options: unknown
+  ) {
+    return _stream(connection, obj, stream, options);
   }
 
-  override processResponse(obj: QueryObject, runner: unknown) {
-    if (!obj.response) {
-      throw new Error("obj.response must exist.");
-    }
-
-    const { response } = obj;
-    (Array.isArray(response) ? response : [response]).forEach((x) => {
-      x.affectedRows ??= 0;
-    });
-
-    if (obj.output) {
-      return obj.output.call(runner, response);
-    }
-
-    if (obj.method === "raw") return response;
-
-    throw new Error(`Unexpected method. method: ${obj.method}`);
+  _query(connection: PGliteInterface, obj: QueryObject): Promise<QueryObject> {
+    return _query(connection, obj);
   }
 
-  override async setSchemaSearchPath(connection: PGlite, searchPath: unknown) {
-    let path = searchPath || this.searchPath;
-    if (!path) {
-      return Promise.resolve(true);
-    }
-
-    if (!Array.isArray(path) && typeof path !== "string") {
-      throw new TypeError(
-        `knex: Expected searchPath to be Array/String, got: ${typeof path}`
-      );
-    }
-
-    if (typeof path === "string") {
-      if (path.includes(",")) {
-        const parts = path.split(",");
-        const arraySyntax = `[${parts
-          .map((searchPath) => `'${searchPath}'`)
-          .join(", ")}]`;
-        this.ormConfig
-          .getLogger()
-          .warn(
-            "PGlite",
-            `Detected comma in searchPath "${path}".` +
-              `If you are trying to specify multiple schemas, use Array syntax: ${arraySyntax}`
-          );
-      }
-      path = [path];
-    }
-
-    path = (path as string[]).map((schemaName) => `"${schemaName}"`).join(",");
-
-    await connection.exec(`set search_path to ${path as string}`);
-    return true;
+  processResponse(obj: QueryObject, runner: unknown): unknown {
+    return processResponse(obj, runner);
   }
 
-  // Knex.Client_PG overrides end
-
-  getPGlite(): PGlite {
-    return this.driver as PGlite;
+  poolDefaults(): PoolDefaults {
+    return poolDefaults();
   }
 }
+
+patchPGliteDialect(PGliteKnexDialect);

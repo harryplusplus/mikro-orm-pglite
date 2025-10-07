@@ -1,9 +1,8 @@
-export * from "@electric-sql/pglite";
-export * from "./PGliteConnection";
-export * from "./PGliteDriver";
-export * from "./PGliteKnexDialect";
+export * from "@harryplusplus/knex-pglite";
+export * from "./PGliteConnection.js";
+export * from "./PGliteDriver.js";
 export {
   definePGliteConfig as defineConfig,
   PGliteMikroORM as MikroORM,
   type PGliteOptions as Options,
-} from "./PGliteMikroORM";
+} from "./PGliteMikroORM.js";

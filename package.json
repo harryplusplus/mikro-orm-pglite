@@ -38,19 +38,19 @@
   ],
   "scripts": {
     "all": "run-s generate:readme-toc format lint test build",
-    "build": "run-s build:cjs build:esm build:types",
-    "build:cjs": "swc src -d dist --strip-leading-paths --delete-dir-on-start",
-    "build:esm": "gen-esm-wrapper dist dist/index.mjs",
+    "build": "run-s clean build:js build:types",
+    "build:js": "tsup",
     "build:types": "tsc -p tsconfig.build.json",
+    "clean": "rimraf dist",
     "format": "run-p format:*",
     "format:package-json": "sort-package-json package.json",
     "format:readme": "prettier -w README*.md",
     "generate:readme-toc": "for file in $(glob 'README*.md'); do markdown-toc -i \"$file\"; done",
     "lint": "eslint",
-    "test": "vitest"
+    "test": "vitest --run"
   },
   "dependencies": {
-    "@harryplusplus/knex-pglite": "^0.10.4"
+    "@harryplusplus/knex-pglite": "0.12.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.10",
@@ -62,6 +62,7 @@
     "markdown-toc": "1.2.0",
     "npm-run-all": "4.1.5",
     "prettier": "3.6.2",
+    "rimraf": "6.0.1",
     "sort-package-json": "3.4.0",
     "ts-node": "10.9.2",
     "tsup": "8.5.0",

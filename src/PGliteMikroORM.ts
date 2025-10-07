@@ -4,10 +4,10 @@ import {
   type EntityManager,
   type EntityManagerType,
   type IDatabaseDriver,
+  type Options,
 } from "@mikro-orm/core";
 import { type SqlEntityManager } from "@mikro-orm/postgresql";
-import { PGliteDriver } from "./PGliteDriver";
-import { Options } from "./types";
+import { PGliteDriver } from "./PGliteDriver.js";
 
 /**
  * @inheritDoc
@@ -40,7 +40,6 @@ export class PGliteMikroORM<
 
 export type PGliteOptions = Options<PGliteDriver>;
 
-/* istanbul ignore next */
 export function definePGliteConfig(options: PGliteOptions) {
   return defineConfig({ driver: PGliteDriver, ...options });
 }
