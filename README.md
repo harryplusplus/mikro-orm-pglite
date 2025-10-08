@@ -34,7 +34,7 @@ npm install @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm
 pnpm add @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pglite
 ```
 
-> [!WARNING]
+> [!WARNING]  
 > [Yarn](https://yarnpkg.com/) and [Bun](https://bun.com/) environments have not been tested yet for compatibility.
 
 ## Usage
