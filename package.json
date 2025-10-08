@@ -1,7 +1,7 @@
 {
   "name": "mikro-orm-pglite",
   "version": "0.4.0",
-  "description": "A dialect for using PGlite with MikroORM.",
+  "description": "A driver for using PGlite with MikroORM.",
   "keywords": [
     "knex",
     "knex-pglite",

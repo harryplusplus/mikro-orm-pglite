@@ -1,6 +1,6 @@
-# MikroORM PGlite
+# MikroORM PGlite Driver
 
-A dialect for using [PGlite](https://pglite.dev/) with [MikroORM](https://mikro-orm.io/).
+A driver for using [PGlite](https://pglite.dev/) with [MikroORM](https://mikro-orm.io/).
 
 ## Table of Contents
 

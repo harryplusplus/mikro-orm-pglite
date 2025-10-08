@@ -1,6 +1,6 @@
 # MikroORM PGlite
 
-[MikroORM](https://mikro-orm.io/)를 위한 [PGlite](https://pglite.dev/) 드라이버.
+[PGlite](https://pglite.dev/)를 [MikroORM](https://mikro-orm.io/)과 함께 사용하기 위한 드라이버입니다.
 
 ## 목차
 
@@ -174,7 +174,7 @@ const options = {
         const blob = await context.instance.dumpDataDir("gzip");
         await fs.promises.writeFile(
           dataPath,
-          Buffer.from(await blob.arrayBuffer()),
+          Buffer.from(await blob.arrayBuffer())
         );
       },
     },
