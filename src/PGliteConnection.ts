@@ -1,11 +1,16 @@
-import { Results } from "@electric-sql/pglite";
-import { AbstractSqlConnection, Knex, Utils } from "@mikro-orm/postgresql";
+import type { Results } from "@electric-sql/pglite";
+import { PGliteDialectDataSource } from "@harryplusplus/knex-pglite";
+import { AbstractSqlConnection, type Knex, Utils } from "@mikro-orm/postgresql";
 import { PGliteKnexDialect } from "./PGliteKnexDialect.js";
 
 export class PGliteConnection extends AbstractSqlConnection {
+  private readonly dialectDataSource = new PGliteDialectDataSource();
+
   override createKnex() {
     this.client = this.createKnexClient(PGliteKnexDialect as unknown as string);
-    (this.getKnex().client as PGliteKnexDialect).ormConfig = this.config;
+    const dialect = this.getKnex().client as PGliteKnexDialect;
+    dialect.ormConfig = this.config;
+    dialect.driver = this.dialectDataSource;
     this.connected = true;
   }
 
@@ -14,6 +19,7 @@ export class PGliteConnection extends AbstractSqlConnection {
       {
         client: type,
         pool: this.config.get("pool"),
+        connection: {},
       },
       this.config.get("driverOptions")
     ) as Knex.Config;
