@@ -20,7 +20,7 @@ A driver for using [PGlite](https://pglite.dev/) with [MikroORM](https://mikro-o
 
 <!-- tocstop -->
 
-## Languages
+## Language
 
 - [English](/README.md)
 - [한국어](/README.ko.md)
