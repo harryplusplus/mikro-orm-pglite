@@ -1,6 +1,6 @@
 # MikroORM PGlite
 
-[PGlite](https://pglite.dev/) driver for [MikroORM](https://mikro-orm.io/).
+A dialect for using [PGlite](https://pglite.dev/) with [MikroORM](https://mikro-orm.io/).
 
 ## Table of Contents
 
@@ -174,7 +174,7 @@ const options = {
         const blob = await context.instance.dumpDataDir("gzip");
         await fs.promises.writeFile(
           dataPath,
-          Buffer.from(await blob.arrayBuffer()),
+          Buffer.from(await blob.arrayBuffer())
         );
       },
     },
