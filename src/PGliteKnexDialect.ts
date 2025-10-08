@@ -1,104 +1,94 @@
-import type { PGlite } from "@electric-sql/pglite";
+import type { PGliteInterface } from "@electric-sql/pglite";
 import {
-  PostgreSqlKnexDialect,
-  Utils,
-  type Constructor,
-  type Knex,
-} from "@mikro-orm/postgresql";
-import type { Types } from ".";
-import { PGliteKnexDriver } from "./PGliteKnexDriver";
-import type { PoolDefaults, QueryObject } from "./types";
+  _query,
+  _stream,
+  checkVersion,
+  patchPGliteDialect,
+  PGliteDialectDataSource,
+  poolDefaults,
+  processResponse,
+  setSchemaSearchPath,
+  type PoolDefaults,
+  type QueryObject,
+} from "@harryplusplus/knex-pglite";
+import { PostgreSqlKnexDialect } from "@mikro-orm/postgresql";
 
-/**
- * The type references are the dependency libraries
- * @mikro-orm/postgresql@6.5.6 PostgreSqlKnexDialect
- * and kenx@3.1.0 knex/lib/dialects/postgresql Client_PG.
- */
-interface KnexClientPG extends Knex.Client {
-  _driver(): unknown;
-  _acquireOnlyConnection(): unknown;
-  checkVersion(connection: unknown): unknown;
-  _parseVersion(versionString: unknown): unknown;
-  _query(connection: unknown, obj: unknown): unknown;
-  processResponse(obj: unknown, runner: unknown): unknown;
-}
+export class PGliteKnexDialect extends PostgreSqlKnexDialect {
+  declare driver?: unknown;
+  declare connectionSettings?: unknown;
+  declare searchPath?: unknown;
+  declare _parseVersion?: (version: unknown) => unknown;
+  declare logger?: { warn?: (message: unknown) => void };
 
-const TypedPostgreSqlKnexDialect = PostgreSqlKnexDialect as Constructor<
-  PostgreSqlKnexDialect & KnexClientPG
->;
-
-export class PGliteKnexDialect extends TypedPostgreSqlKnexDialect {
-  constructor(config: Types.Knex.Config) {
-    super(config);
+  /**
+   * After initializing driver to null, driver is injected by PGliteConnection
+   * during createKnex step.
+   */
+  _driver(): null {
+    return null;
   }
 
-  override _driver(): PGliteKnexDriver {
-    return new PGliteKnexDriver(this);
-  }
-
-  override _acquireOnlyConnection(): Promise<PGlite> {
-    const connection = this.getKnexDriver().acquire();
-    return Promise.resolve(connection);
-  }
-
-  override destroyRawConnection(connection: PGlite): Promise<void> {
-    return Promise.resolve(this.getKnexDriver().release(connection));
-  }
-
-  override poolDefaults(): PoolDefaults {
-    return Utils.mergeConfig(super.poolDefaults(), {
-      min: 1,
-      max: 1,
-    }) as PoolDefaults;
-  }
-
-  override async checkVersion(connection: PGlite): Promise<string> {
-    const result = await connection.query("select version();");
-    const row = result.rows[0] as { version?: string };
-    return this._parseVersion(row.version) as string;
-  }
-
-  override async _query(
-    connection: PGlite,
-    obj: QueryObject
-  ): Promise<QueryObject> {
-    if (!obj.sql) {
-      throw new Error("obj.sql must exists.");
+  getDataSource(): PGliteDialectDataSource {
+    if (!this.driver) {
+      throw new Error("The driver must be set in the createKnex step.");
     }
 
-    if (obj.sql.split(";").filter((x) => x.trim().length !== 0).length > 1) {
-      obj.response = await connection.exec(obj.sql);
-    } else {
-      obj.response = await connection.query(obj.sql, obj.bindings ?? []);
-    }
-
-    return obj;
+    return this.driver as PGliteDialectDataSource;
   }
 
-  override processResponse(obj: QueryObject, runner: unknown) {
-    if (!obj.response) {
-      throw new Error("obj.response must exists.");
-    }
-
-    const { response } = obj;
-    (Array.isArray(response) ? response : [response]).forEach((x) => {
-      x.affectedRows ??= 0;
+  _acquireOnlyConnection(): Promise<PGliteInterface> {
+    return this.getDataSource()._acquireOnlyConnection({
+      getConnectionSettings: () => this.connectionSettings,
     });
-
-    if (obj.output) {
-      return obj.output.call(runner, response);
-    }
-
-    if (obj.method === "raw") return response;
-
-    throw new Error(`Unexpected method. method: ${obj.method}`);
   }
 
-  getKnexDriver(): PGliteKnexDriver {
-    if (!(this.driver instanceof PGliteKnexDriver)) {
-      throw new Error("driver is not initialized.");
-    }
+  destroyRawConnection(connection: PGliteInterface): Promise<void> {
+    return this.getDataSource().destroyRawConnection(connection);
+  }
 
-    return this.driver;
+  checkVersion(connection: PGliteInterface): Promise<string> {
+    return checkVersion(
+      {
+        parseVersion: (version) => this._parseVersion?.(version),
+      },
+      connection
+    );
+  }
+
+  setSchemaSearchPath(
+    connection: PGliteInterface,
+    searchPath: string | string[]
+  ) {
+    return setSchemaSearchPath(
+      {
+        getSearchPath: () => this.searchPath,
+        warn: (message) => this.logger?.warn?.(message),
+      },
+      connection,
+      searchPath
+    );
+  }
+
+  _stream(
+    connection: PGliteInterface,
+    obj: QueryObject,
+    stream: NodeJS.WritableStream,
+    options: unknown
+  ) {
+    return _stream(connection, obj, stream, options);
+  }
+
+  _query(connection: PGliteInterface, obj: QueryObject): Promise<QueryObject> {
+    return _query(connection, obj);
+  }
+
+  processResponse(obj: QueryObject, runner: unknown): unknown {
+    return processResponse(obj, runner);
+  }
+
+  poolDefaults(): PoolDefaults {
+    return poolDefaults();
   }
 }
+
+patchPGliteDialect(PGliteKnexDialect);

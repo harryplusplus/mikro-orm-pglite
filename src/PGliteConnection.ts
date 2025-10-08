@@ -1,30 +1,40 @@
-import { AbstractSqlConnection } from "@mikro-orm/postgresql";
-import type { Types } from ".";
-import { PGliteKnexDialect } from "./PGliteKnexDialect";
+import type { Results } from "@electric-sql/pglite";
+import { PGliteDialectDataSource } from "@harryplusplus/knex-pglite";
+import { AbstractSqlConnection, type Knex, Utils } from "@mikro-orm/postgresql";
+import { PGliteKnexDialect } from "./PGliteKnexDialect.js";
 
 export class PGliteConnection extends AbstractSqlConnection {
-  override async connect(): Promise<void> {
-    await super.connect();
-    await this.getKnexClient().getKnexDriver().connect();
-    this.connected = true;
-  }
-
-  override async close(force?: boolean): Promise<void> {
-    await this.getKnexClient().getKnexDriver().close();
-    await super.close(force);
-  }
+  private readonly dialectDataSource = new PGliteDialectDataSource();
 
   override createKnex() {
     this.client = this.createKnexClient(PGliteKnexDialect as unknown as string);
-    this.getKnexClient().ormConfig = this.config;
+    const dialect = this.getKnex().client as PGliteKnexDialect;
+    dialect.ormConfig = this.config;
+    dialect.driver = this.dialectDataSource;
+    this.connected = true;
   }
 
-  override getDefaultClientUrl() {
-    return "mikro-orm-pglite://";
+  protected override getKnexOptions(type: string): Knex.Config {
+    return Utils.mergeConfig(
+      {
+        client: type,
+        pool: this.config.get("pool"),
+        connection: {},
+      },
+      this.config.get("driverOptions")
+    ) as Knex.Config;
+  }
+
+  override getClientUrl(): string {
+    return "";
+  }
+
+  override getDefaultClientUrl(): string {
+    return "";
   }
 
   protected override transformRawResult<T>(
-    response: Types.QueryResponse,
+    response: Results | Results[],
     method: "all" | "get" | "run"
   ): T {
     if (Array.isArray(response)) {
@@ -42,18 +52,10 @@ export class PGliteConnection extends AbstractSqlConnection {
     const row0 = response.rows[0];
     return {
       affectedRows: response.affectedRows,
-      insertId: row0 ? row0["id"] : 0,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      insertId: row0?.["id"] ?? 0,
       row: response.rows[0],
       rows: response.rows,
     } as T;
-  }
-
-  private getKnexClient(): PGliteKnexDialect {
-    const knexClient = this.getKnex().client as unknown;
-    if (!(knexClient instanceof PGliteKnexDialect)) {
-      throw new Error("Knex client is not initialized.");
-    }
-
-    return knexClient;
   }
 }

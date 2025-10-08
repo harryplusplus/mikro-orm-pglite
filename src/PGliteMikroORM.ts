@@ -4,10 +4,10 @@ import {
   type EntityManager,
   type EntityManagerType,
   type IDatabaseDriver,
+  type Options,
 } from "@mikro-orm/core";
 import { type SqlEntityManager } from "@mikro-orm/postgresql";
-import type { Types } from ".";
-import { PGliteDriver } from "./PGliteDriver";
+import { PGliteDriver } from "./PGliteDriver.js";
 
 /**
  * @inheritDoc
@@ -23,7 +23,7 @@ export class PGliteMikroORM<
   static override async init<
     D extends IDatabaseDriver = PGliteDriver,
     EM extends EntityManager = D[typeof EntityManagerType] & EntityManager,
-  >(options?: Types.Options<D, EM>): Promise<MikroORM<D, EM>> {
+  >(options?: Options<D, EM>): Promise<MikroORM<D, EM>> {
     return super.init(options);
   }
 
@@ -33,14 +33,13 @@ export class PGliteMikroORM<
   static override initSync<
     D extends IDatabaseDriver = PGliteDriver,
     EM extends EntityManager = D[typeof EntityManagerType] & EntityManager,
-  >(options: Types.Options<D, EM>): MikroORM<D, EM> {
+  >(options: Options<D, EM>): MikroORM<D, EM> {
     return super.initSync(options);
   }
 }
 
-export type PGliteOptions = Types.Options<PGliteDriver>;
+export type PGliteOptions = Options<PGliteDriver>;
 
-/* istanbul ignore next */
 export function definePGliteConfig(options: PGliteOptions) {
   return defineConfig({ driver: PGliteDriver, ...options });
 }
