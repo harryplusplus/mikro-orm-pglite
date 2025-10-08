@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@harryplusplus/knex-pglite':
-        specifier: 0.13.3
-        version: 0.13.3(@electric-sql/pglite@0.3.10)(knex@3.1.0(pg@8.16.3))
+        specifier: 0.13.4
+        version: 0.13.4(@electric-sql/pglite@0.3.10)(knex@3.1.0(pg@8.16.3))
     devDependencies:
       '@electric-sql/pglite':
         specifier: ^0.3.10
@@ -267,8 +267,8 @@ packages:
     resolution: {integrity: sha512-Z5kJ+wU3oA7MMIqVR9tyZRtjYPr4OC004Q4Rw7pgOKUOKkJfZ3O24nz3WYfGRpMDNmcOi3TwQOmgm7B7Tpii0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@harryplusplus/knex-pglite@0.13.3':
-    resolution: {integrity: sha512-pcA0CMfOJfHkmr0OOCCHqyi3LwkDJnRl+eHGNPPh4w40rmEBTsrb/qO26Eal2vPl8p++48N1GOO5Xh2KTuvb4A==}
+  '@harryplusplus/knex-pglite@0.13.4':
+    resolution: {integrity: sha512-yn8jZZeuPD6fowLtS2K5N9ROfDBSd+yNSf3n+31o7pFxbvr33VKVMnFaYl22OBC224RzCmC1pJ1f3ZcALhxP+w==}
     engines: {node: '>= 20.19.5'}
     peerDependencies:
       '@electric-sql/pglite': ^0.3.10
@@ -2601,7 +2601,7 @@ snapshots:
       '@eslint/core': 0.15.2
       levn: 0.4.1
 
-  '@harryplusplus/knex-pglite@0.13.3(@electric-sql/pglite@0.3.10)(knex@3.1.0(pg@8.16.3))':
+  '@harryplusplus/knex-pglite@0.13.4(@electric-sql/pglite@0.3.10)(knex@3.1.0(pg@8.16.3))':
     dependencies:
       '@electric-sql/pglite': 0.3.10
       knex: 3.1.0(pg@8.16.3)
