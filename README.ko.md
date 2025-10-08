@@ -1,4 +1,4 @@
-# MikroORM PGlite
+# MikroORM PGlite Driver
 
 [PGlite](https://pglite.dev/)를 [MikroORM](https://mikro-orm.io/)과 함께 사용하기 위한 드라이버입니다.
 
