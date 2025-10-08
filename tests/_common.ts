@@ -41,6 +41,7 @@ export async function initOrm(options?: PGliteOptions) {
     entities: [User, Book],
     ...options,
   });
-  await orm.schema.refreshDatabase();
+  await orm.schema.ensureDatabase();
+  await orm.schema.updateSchema();
   return orm;
 }

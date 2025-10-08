@@ -33,8 +33,7 @@
     }
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
     "all": "run-s generate:readme-toc format lint test build",
@@ -50,7 +49,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@harryplusplus/knex-pglite": "0.12.0"
+    "@harryplusplus/knex-pglite": "0.13.1"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.10",
