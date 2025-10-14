@@ -1,5 +1,9 @@
 # MikroORM PGlite Driver
 
+[![test](https://github.com/harryplusplus/mikro-orm-pglite/actions/workflows/test.yml/badge.svg)](https://github.com/harryplusplus/mikro-orm-pglite/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/mikro-orm-pglite)](https://www.npmjs.com/package/mikro-orm-pglite)
+[![npm downloads](https://img.shields.io/npm/dm/mikro-orm-pglite)](https://www.npmjs.com/package/mikro-orm-pglite)
+
 A driver for using [PGlite](https://pglite.dev/) with [MikroORM](https://mikro-orm.io/).
 
 ## Table of Contents
