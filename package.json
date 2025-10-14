@@ -54,7 +54,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@harryplusplus/knex-pglite": "0.13.11"
+    "@harryplusplus/knex-pglite": "0.13.13"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.10",
