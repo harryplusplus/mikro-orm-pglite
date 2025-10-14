@@ -18,7 +18,6 @@
     "noUncheckedSideEffectImports": true,
     "outDir": "dist",
     "removeComments": false,
-    "rootDir": ".",
     "skipLibCheck": true,
     "strict": true,
     "target": "es2020",
