@@ -34,7 +34,7 @@ test("create", async () => {
     myOptional: null,
     createdAt: expect.any(Date) as unknown,
   });
-  expect(wrap(user, true).isInitialized()).toBe(true);
+  expect(wrap(user).isInitialized()).toBe(true);
   expect(wrap(user, true).hasPrimaryKey()).toBe(true);
 
   await orm.close();
