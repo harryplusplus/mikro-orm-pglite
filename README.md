@@ -47,7 +47,7 @@ pnpm add @electric-sql/pglite @mikro-orm/postgresql mikro-orm-pglite
 
 Configure the `driver` property of `MikroORM.init` parameters to `PGliteDriver`.
 
-The example below shows an easy way to initialize.
+The example below shows an easy initialization method.
 
 ```typescript
 import { MikroORM } from "@mikro-orm/core";
@@ -129,7 +129,7 @@ The following are the properties for configuring `connection`.
 
 #### `pglite`
 
-The type of the `pglite` attribute is:
+The type of the `pglite` property is:
 
 ```typescript
 export interface PGliteProvider {
