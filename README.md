@@ -81,7 +81,7 @@ Additionally, the PGlite instance becomes **owned** by the MikroORM instance.
 In other words, the PGlite instance shares its lifecycle with the MikroORM instance.
 
 For PGlite instances with In-memory ephemeral storage, sharing the lifecycle with a MikroORM instance may not meet your needs depending on your use case.
-You may also want to initialize it in a File system storage fashion or take advantage of the various parameters of the PGlite constructor.
+You may also want to initialize it in a File system storage method or take advantage of the various parameters of the PGlite constructor.
 
 Configure the `driverOptions.connection.pglite` property to a synchronous or asynchronous function that returns a PGlite instance.
 In this case, MikroORM considers the PGlite instance as **borrowed**.
