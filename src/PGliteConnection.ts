@@ -49,11 +49,9 @@ export class PGliteConnection extends AbstractSqlConnection {
       return response.rows as T;
     }
 
-    const row0 = response.rows[0];
     return {
       affectedRows: response.affectedRows,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      insertId: row0?.["id"] ?? 0,
+      insertId: (response.rows[0]?.["id"] as unknown) ?? 0,
       row: response.rows[0],
       rows: response.rows,
     } as T;

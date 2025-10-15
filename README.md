@@ -33,9 +33,9 @@ Install with the following commands.
 
 ```sh
 # using npm
-npm install @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pglite
+npm install @electric-sql/pglite @mikro-orm/postgresql mikro-orm-pglite
 # using pnpm
-pnpm add @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pglite
+pnpm add @electric-sql/pglite @mikro-orm/postgresql mikro-orm-pglite
 ```
 
 > [!WARNING]  
@@ -45,50 +45,26 @@ pnpm add @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pg
 
 ### Easy initialization
 
-You can configure it using `MikroORM`, `defineConfig` or `PGliteDriver` within the `mikro-orm-pglite` package.
+Configure the `driver` property of `MikroORM.init` parameters to `PGliteDriver`.
 
-> [!WARNING]  
-> The `dbName` property must be configured.
-
-The example below shows how to do this using `MikroORM.init`.
-
-```typescript
-import { MikroORM } from "mikro-orm-pglite";
-
-const orm = await MikroORM.init({
-  dbName: "postgres",
-  // ...
-});
-```
-
-The example below shows how to use `defineConfig`.
-
-```typescript
-import { MikroORM } from "mikro-orm-pglite";
-
-const orm = await MikroORM.init();
-```
-
-```typescript
-// src/mikro-orm.config.ts
-import { defineConfig } from "mikro-orm-pglite";
-
-export default defineConfig({
-  dbName: "postgres",
-});
-```
-
-The example below shows how to do this using `PGliteDriver`.
+The example below shows an easy way to initialize.
 
 ```typescript
 import { MikroORM } from "@mikro-orm/core";
 import { PGliteDriver } from "mikro-orm-pglite";
 
-const orm = MikroORM.init({
+const orm = await MikroORM.init({
   driver: PGliteDriver,
   dbName: "postgres",
 });
+
+await orm.close();
 ```
+
+> [!WARNING]  
+> The `dbName` property must be configured.
+
+<!-- MD028/no-blanks-blockquote -->
 
 > [!NOTE]  
 > Please read the documentation below for more information on how to configure MikroORM.
@@ -115,21 +91,22 @@ The example below shows how to inject a PGlite instance.
 
 ```typescript
 import { PGlite } from "@electric-sql/pglite";
-import { MikroORM, PGliteConnectionConfig } from "mikro-orm-pglite";
+import { MikroORM } from "@mikro-orm/core";
+import { PGliteConnectionConfig, PGliteDriver } from "mikro-orm-pglite";
 
 const pglite = new PGlite();
 
 const orm = await MikroORM.init({
+  driver: PGliteDriver,
   dbName: "postgres",
   driverOptions: {
     connection: {
       pglite: () => pglite,
     } satisfies PGliteConnectionConfig,
   },
-  // ...
 });
 
-// ...
+await orm.close();
 
 await pglite.close();
 ```

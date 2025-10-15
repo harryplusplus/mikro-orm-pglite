@@ -3,12 +3,13 @@ import {
   Entity,
   Index,
   ManyToOne,
+  MikroORM,
+  type Options,
   PrimaryKey,
   Property,
   type Ref,
 } from "@mikro-orm/core";
-import { MikroORM } from "../src/index.js";
-import { PGliteOptions } from "../src/PGliteMikroORM.js";
+import { PGliteDriver } from "../src/PGliteDriver.js";
 
 @Entity({ tableName: "users" })
 @Index({ properties: ["myDefault", "myOptional"] })
@@ -35,8 +36,9 @@ export class Book {
   user!: Ref<User>;
 }
 
-export async function initOrm(options?: PGliteOptions) {
+export async function initOrm(options?: Options) {
   const orm = await MikroORM.init({
+    driver: PGliteDriver,
     dbName: "my-db",
     entities: [User, Book],
     ...options,
