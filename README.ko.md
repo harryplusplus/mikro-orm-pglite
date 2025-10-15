@@ -33,9 +33,9 @@
 
 ```sh
 # npm 사용시
-npm install @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pglite
+npm install @electric-sql/pglite @mikro-orm/postgresql mikro-orm-pglite
 # pnpm 사용시
-pnpm add @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pglite
+pnpm add @electric-sql/pglite @mikro-orm/postgresql mikro-orm-pglite
 ```
 
 > [!WARNING]  
@@ -45,50 +45,26 @@ pnpm add @mikro-orm/core @mikro-orm/postgresql @electric-sql/pglite mikro-orm-pg
 
 ### 쉬운 초기화
 
-`mikro-orm-pglite` 패키지 내 `MikroORM`, `defineConfig` 또는 `PGliteDriver`를 사용해 구성할 수 있습니다.
+`MikroORM.init`의 매개변수의 `driver` 속성을 `PGliteDriver`로 구성합니다.
 
-> [!WARNING]  
-> `dbName` 속성은 반드시 구성해야 합니다.
-
-아래 예제는 `MikroORM.init`을 사용한 방법입니다.
-
-```typescript
-import { MikroORM } from "mikro-orm-pglite";
-
-const orm = await MikroORM.init({
-  dbName: "postgres",
-  // ...
-});
-```
-
-아래 예제는 `defineConfig`를 사용한 방법입니다.
-
-```typescript
-import { MikroORM } from "mikro-orm-pglite";
-
-const orm = await MikroORM.init();
-```
-
-```typescript
-// src/mikro-orm.config.ts
-import { defineConfig } from "mikro-orm-pglite";
-
-export default defineConfig({
-  dbName: "postgres",
-});
-```
-
-아래 예제는 `PGliteDriver`를 사용한 방법입니다.
+아래 예제는 쉬운 초기화 방법입니다.
 
 ```typescript
 import { MikroORM } from "@mikro-orm/core";
 import { PGliteDriver } from "mikro-orm-pglite";
 
-const orm = MikroORM.init({
+const orm = await MikroORM.init({
   driver: PGliteDriver,
   dbName: "postgres",
 });
+
+await orm.close();
 ```
+
+> [!WARNING]  
+> `dbName` 속성은 반드시 구성해야 합니다.
+
+<!-- MD028/no-blanks-blockquote -->
 
 > [!NOTE]  
 > MikroORM 구성 방법에 대한 자세한 내용은 아래 문서를 읽어주세요.
@@ -115,21 +91,22 @@ In-memory 임시 저장소 방식의 PGlite 인스턴스의 경우, 사용 사�
 
 ```typescript
 import { PGlite } from "@electric-sql/pglite";
-import { MikroORM, PGliteConnectionConfig } from "mikro-orm-pglite";
+import { MikroORM } from "@mikro-orm/core";
+import { PGliteConnectionConfig, PGliteDriver } from "mikro-orm-pglite";
 
 const pglite = new PGlite();
 
 const orm = await MikroORM.init({
+  driver: PGliteDriver,
   dbName: "postgres",
   driverOptions: {
     connection: {
       pglite: () => pglite,
     } satisfies PGliteConnectionConfig,
   },
-  // ...
 });
 
-// ...
+await orm.close();
 
 await pglite.close();
 ```
