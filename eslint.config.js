@@ -3,10 +3,9 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import ts from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["dist/", "temp/"]),
+  globalIgnores(["dist/", "temp/", "examples/"]),
   {
     files: ["**/*.ts"],
-    ignores: ["examples/"],
     plugins: { js, ts },
     extends: ["js/recommended", "ts/recommendedTypeChecked"],
     languageOptions: {
