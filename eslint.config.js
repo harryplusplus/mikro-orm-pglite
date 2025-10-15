@@ -6,6 +6,7 @@ export default defineConfig([
   globalIgnores(["dist/", "temp/"]),
   {
     files: ["**/*.ts"],
+    ignores: ["examples/"],
     plugins: { js, ts },
     extends: ["js/recommended", "ts/recommendedTypeChecked"],
     languageOptions: {
