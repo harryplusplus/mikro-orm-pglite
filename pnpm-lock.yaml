@@ -10,11 +10,11 @@ importers:
     dependencies:
       '@harryplusplus/knex-pglite':
         specifier: 0.13.13
-        version: 0.13.13(@electric-sql/pglite@0.3.10)(knex@3.1.0(pg@8.16.3))
+        version: 0.13.13(@electric-sql/pglite@0.3.11)(knex@3.1.0(pg@8.16.3))
     devDependencies:
       '@electric-sql/pglite':
         specifier: ^0.3.10
-        version: 0.3.10
+        version: 0.3.11
       '@eslint/js':
         specifier: 9.37.0
         version: 9.37.0
@@ -84,8 +84,8 @@ packages:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
 
-  '@electric-sql/pglite@0.3.10':
-    resolution: {integrity: sha512-1XtXXprd848aR4hvjNqBc3Gc86zNGmd60x+MgOUShbHYxt+J76N8A81DqTEl275T8xBD0vdTgqR/dJ4yJyz0NQ==}
+  '@electric-sql/pglite@0.3.11':
+    resolution: {integrity: sha512-FJtjnEyez8XgmgyE5Ewmx89TGVN+75ZjykFoExApRIbJBMT4dsbsuZkF/YWLuymGDfGFHDACjvENPMEqg4FoWg==}
 
   '@esbuild/aix-ppc64@0.25.10':
     resolution: {integrity: sha512-0NFWnA+7l41irNuaSVlLfgNT12caWJVLzp5eAVhZ0z1qpxbockccEt3s+149rE64VUI3Ml2zt8Nv5JVc4QXTsw==}
@@ -3269,7 +3269,7 @@ snapshots:
   '@colors/colors@1.5.0':
     optional: true
 
-  '@electric-sql/pglite@0.3.10': {}
+  '@electric-sql/pglite@0.3.11': {}
 
   '@esbuild/aix-ppc64@0.25.10':
     optional: true
@@ -3395,9 +3395,9 @@ snapshots:
       '@eslint/core': 0.16.0
       levn: 0.4.1
 
-  '@harryplusplus/knex-pglite@0.13.13(@electric-sql/pglite@0.3.10)(knex@3.1.0(pg@8.16.3))':
+  '@harryplusplus/knex-pglite@0.13.13(@electric-sql/pglite@0.3.11)(knex@3.1.0(pg@8.16.3))':
     dependencies:
-      '@electric-sql/pglite': 0.3.10
+      '@electric-sql/pglite': 0.3.11
       knex: 3.1.0(pg@8.16.3)
 
   '@humanfs/core@0.19.1': {}
