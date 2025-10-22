@@ -47,4 +47,5 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm semantic-release
+          npm_config_yes: true
+        run: npx -p node@latest -c "pnpm semantic-release"
